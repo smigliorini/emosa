@@ -37,6 +37,11 @@
       <root url="jar://$PROJECT_DIR$/../jfreechart-1.0.19/lib/orsonpdf-1.6-eval.jar!/" />
       <root url="jar://$PROJECT_DIR$/../jfreechart-1.0.19/lib/servlet.jar!/" />
       <root url="jar://$PROJECT_DIR$/../jfreechart-1.0.19/lib/swtgraphics2d.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../test_auditel/lib/hadoop-mapreduce-client-jobclient-2.10.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../test_auditel/lib/hadoop-auth-2.10.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../test_auditel/lib/hadoop-common-2.10.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../test_auditel/lib/hadoop-hdfs-2.10.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../test_auditel/lib/hadoop-mapreduce-client-core-2.10.1.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
