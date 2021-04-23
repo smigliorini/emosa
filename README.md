@@ -48,9 +48,9 @@ E' possibile vedere il contenuto dell'output da linea di comando con l'opzione -
 - Hint: parto dal main TrsaAuditel, guardo come vengono processati quei file li e ne creo uno simile per dare la preferenza di transizione da un canale all'altro
 
 #### Domande e risposte
-- ParetoSet: partendo da un inieme di soluzioni, che sono una sequenza di suggerimenti, poi per ognuno di questi verifico in modo che all'interno del paretoset ci siano solo le soluzioni che sono mutualmente non dominanti tra di loro, cioè sono buone per un aspetto ma meno per un altro, ma non posso affermare con certezza che una è migliore dell'altra. La classe è un insieme di oggetti di tipo VeronaCard, poi ho varie funzioni che trovo dentro la cartella _MosaUtil_ che viene calcolata la funzione dominanza e vengono calcolate le altre funzioni che servono per aggiornare l'insieme.
-- Esecuzione programma su cluster Hadoop dovrebbe essere corretta anche se abbastanza lenta (perchè ??)
-- Esecuzione tramite IntelliJ dà un errore e va fixato
+- ParetoSet: partendo da un insieme di soluzioni, che sono una sequenza di suggerimenti, poi per ognuno di questi verifico in modo che all'interno del paretoset ci siano solo le soluzioni che sono mutualmente non dominanti tra di loro, cioè sono buone per un aspetto ma meno per un altro, ma non posso affermare con certezza che una è migliore dell'altra. La classe è un insieme di oggetti di tipo VeronaCard, poi ho varie funzioni che trovo dentro la cartella _MosaUtil_ che viene calcolata la funzione dominanza e vengono calcolate le altre funzioni che servono per aggiornare l'insieme.
+- **Esecuzione programma su Hadoop ritorna qualche errore ed è molto lenta, mostrare se è corretta la struttura dei file**
+- **Esecuzione tramite IntelliJ dà un errore e va fixato (chiedere)**
 
 ## Funzionamento
 
