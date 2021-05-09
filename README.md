@@ -49,8 +49,6 @@ E' possibile vedere il contenuto dell'output da linea di comando con l'opzione -
 
 #### Domande e risposte
 - ParetoSet: partendo da un insieme di soluzioni, che sono una sequenza di suggerimenti, poi per ognuno di questi verifico in modo che all'interno del paretoset ci siano solo le soluzioni che sono mutualmente non dominanti tra di loro, cioè sono buone per un aspetto ma meno per un altro, ma non posso affermare con certezza che una è migliore dell'altra. La classe è un insieme di oggetti di tipo VeronaCard, poi ho varie funzioni che trovo dentro la cartella _MosaUtil_ che viene calcolata la funzione dominanza e vengono calcolate le altre funzioni che servono per aggiornare l'insieme.
-- **Esecuzione programma su Hadoop ritorna qualche errore ed è molto lenta, mostrare se è corretta la struttura dei file**
-- **Esecuzione tramite IntelliJ dà un errore e va fixato (chiedere)**
 
 ## Funzionamento
 
@@ -152,7 +150,11 @@ Un lavoro è suddiviso in più attività che vengono quindi eseguite su più nod
 
 - per creare il jar devo eseguire da linea comando: $HADOOP_HOME/bin/hadoop jar Auditel.jar /mainDirectory /inputDirectory /outputDirectory
 
-- Funzionamento in Hadoop: la cartella trsa_auditel contiene 2 sotto cartelle, input e output, la prima deve contenere sequencies history .csv, la seconda deve contenere sotto cartelle da 0 a N in base a quale istruzione viene scelta che poi produrrà file di output; gli altri file csv rimangono nella cartella main.
+- Funzionamento in Hadoop (e anche su IntelliJ): la cartella trsa_auditel contiene 2 sotto cartelle, input e output, la prima deve contenere sequencies history .csv, la seconda deve contenere sotto cartelle da 0 a N in base a quale istruzione viene scelta che poi produrrà file di output; gli altri file csv rimangono nella cartella main.
+
+- Funziona su IntelliJ: molto lento ma il problema principale è che va in crash la virtual machine con IntelliJ. Fixare funzionamento su HDFS...
+
+
 
 
 
