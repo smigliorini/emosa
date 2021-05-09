@@ -150,7 +150,9 @@ Un lavoro è suddiviso in più attività che vengono quindi eseguite su più nod
 - args[3] = ageClasses
 - args[4] = timeSlot
 
-- per creare il jar devo eseguire da linea comando: $HADOOP_HOME/bin/hadoop jar Auditel.jar /inputDirectory /outputDirectory
+- per creare il jar devo eseguire da linea comando: $HADOOP_HOME/bin/hadoop jar Auditel.jar /mainDirectory /inputDirectory /outputDirectory
+
+- Funzionamento in Hadoop: la cartella trsa_auditel contiene 2 sotto cartelle, input e output, la prima deve contenere sequencies history .csv, la seconda deve contenere sotto cartelle da 0 a N in base a quale istruzione viene scelta che poi produrrà file di output; gli altri file csv rimangono nella cartella main.
 
 
 
