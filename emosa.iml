@@ -7,6 +7,101 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="commons-cli-1.4" level="project" />
+    <orderEntry type="library" exported="" name="commons-cli-1.4" level="project" />
+    <orderEntry type="module-library" exported="">
+      <library>
+        <CLASSES>
+          <root url="file://$MODULE_DIR$/../hadoop-2.8.0/share/hadoop/common" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://$MODULE_DIR$/../hadoop-2.8.0/share/hadoop/common/jdiff" />
+        </SOURCES>
+        <jarDirectory url="file://$MODULE_DIR$/../hadoop-2.8.0/share/hadoop/common" recursive="false" />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" exported="">
+      <library>
+        <CLASSES>
+          <root url="file://$MODULE_DIR$/../hadoop-2.8.0/share/hadoop/common/lib" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://$MODULE_DIR$/../hadoop-2.8.0/share/hadoop/common/lib" />
+        </SOURCES>
+        <jarDirectory url="file://$MODULE_DIR$/../hadoop-2.8.0/share/hadoop/common/lib" recursive="false" />
+        <jarDirectory url="file://$MODULE_DIR$/../hadoop-2.8.0/share/hadoop/common/lib" recursive="false" type="SOURCES" />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" exported="">
+      <library>
+        <CLASSES>
+          <root url="file://$MODULE_DIR$/../hadoop-2.8.0/share/hadoop/mapreduce" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://$MODULE_DIR$/../hadoop-2.8.0/share/hadoop/mapreduce/jdiff" />
+        </SOURCES>
+        <jarDirectory url="file://$MODULE_DIR$/../hadoop-2.8.0/share/hadoop/mapreduce" recursive="false" />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" exported="">
+      <library>
+        <CLASSES>
+          <root url="file://$MODULE_DIR$/../hadoop-2.8.0/share/hadoop/hdfs" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://$MODULE_DIR$/../hadoop-2.8.0/share/hadoop/hdfs/jdiff" />
+        </SOURCES>
+        <jarDirectory url="file://$MODULE_DIR$/../hadoop-2.8.0/share/hadoop/hdfs" recursive="false" />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" exported="">
+      <library>
+        <CLASSES>
+          <root url="file://$MODULE_DIR$/../hadoop-2.8.0/share/hadoop/hdfs/lib" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://$MODULE_DIR$/../hadoop-2.8.0/share/hadoop/hdfs/lib" />
+        </SOURCES>
+        <jarDirectory url="file://$MODULE_DIR$/../hadoop-2.8.0/share/hadoop/hdfs/lib" recursive="false" />
+        <jarDirectory url="file://$MODULE_DIR$/../hadoop-2.8.0/share/hadoop/hdfs/lib" recursive="false" type="SOURCES" />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" exported="">
+      <library>
+        <CLASSES>
+          <root url="file://$MODULE_DIR$/../hadoop-2.8.0/share/hadoop/yarn" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+        <jarDirectory url="file://$MODULE_DIR$/../hadoop-2.8.0/share/hadoop/yarn" recursive="false" />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" exported="">
+      <library>
+        <CLASSES>
+          <root url="file://$MODULE_DIR$/../hadoop-2.8.0/share/hadoop/yarn/lib" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://$MODULE_DIR$/../hadoop-2.8.0/share/hadoop/yarn/lib" />
+        </SOURCES>
+        <jarDirectory url="file://$MODULE_DIR$/../hadoop-2.8.0/share/hadoop/yarn/lib" recursive="false" />
+        <jarDirectory url="file://$MODULE_DIR$/../hadoop-2.8.0/share/hadoop/yarn/lib" recursive="false" type="SOURCES" />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" exported="">
+      <library>
+        <CLASSES>
+          <root url="file://$MODULE_DIR$/../hadoop-2.8.0/share/hadoop/mapreduce/lib" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+        <jarDirectory url="file://$MODULE_DIR$/../hadoop-2.8.0/share/hadoop/mapreduce/lib" recursive="false" />
+      </library>
+    </orderEntry>
   </component>
 </module>
