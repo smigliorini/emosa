@@ -152,7 +152,12 @@ Un lavoro è suddiviso in più attività che vengono quindi eseguite su più nod
 
 - Funzionamento in Hadoop (e anche su IntelliJ): la cartella trsa_auditel contiene 2 sotto cartelle, input e output, la prima deve contenere sequencies history .csv, la seconda deve contenere sotto cartelle da 0 a N in base a quale istruzione viene scelta che poi produrrà file di output; gli altri file csv rimangono nella cartella main.
 
-- Funziona su IntelliJ: molto lento ma il problema principale è che va in crash la virtual machine con IntelliJ. Fixare funzionamento su HDFS...
+#### TODO
+- Domanda di laurea con titolo tesi (inglese o italiano?)
+- Data Analytics: ..... intro
+- Spiegazione generale con funzionamento archietettura
+- Approfondimento tematica principale
+- Latex document con .bib
 
 
 
