@@ -3,6 +3,9 @@ package it.univr.auditel.shadoop.core;
 import it.univr.auditel.entities.GroupView;
 import it.univr.auditel.entities.ProgramRecord;
 import it.univr.auditel.entities.UserPreference;
+//new
+import it.univr.auditel.entities.ChannelTransition;
+//endnew
 import it.univr.auditel.entities.Utils;
 import org.apache.commons.lang.time.DateUtils;
 import org.apache.hadoop.io.Writable;

@@ -6,7 +6,9 @@ import edu.umn.cs.spatialHadoop.core.SpatialSite;
 import it.univr.auditel.entities.GContext;
 import it.univr.auditel.entities.ProgramRecord;
 import it.univr.auditel.entities.UserPreference;
+//new
 import it.univr.auditel.entities.ChannelTransition;
+//endnew
 import it.univr.veronacard.shadoop.core.TripValue;
 import org.apache.commons.lang.time.DateUtils;
 import org.apache.hadoop.fs.FileStatus;

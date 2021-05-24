@@ -3,6 +3,9 @@ package it.univr.auditel.mapred;
 import it.univr.auditel.entities.GContext;
 import it.univr.auditel.entities.ProgramRecord;
 import it.univr.auditel.entities.UserPreference;
+//new
+import it.univr.auditel.entities.ChannelTransition;
+//endnew
 import it.univr.auditel.shadoop.core.ViewSequenceValue;
 import it.univr.auditel.shadoop.core.ViewSequenceWritable;
 import org.apache.hadoop.conf.Configuration;

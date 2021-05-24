@@ -40,6 +40,9 @@ public class TrsaAuditel {
 
   public static final String ageClassesLabel = "ageClasses";
   public static final String timeSlotLabel = "timeSlot";
+  //new
+  public static final String transitionValueLabel = "transitionValue";
+  //newend
   public static final String durationLabel = "maxDuration";
   public static final String durationOffsetLabel = "durationOffset";
   public static final String maxPerturbationsLabel = "maxPerturbations";
@@ -100,6 +103,10 @@ public class TrsaAuditel {
       ( format( "%s/%s", ts.mainDirectory, preferenceFile ) );
     final Path schedulingCachePath = new Path
       ( format( "%s/%s", ts.mainDirectory, schedulingFile ) );
+    //new
+    final Path transitionCachePath = new Path
+            ( format( "%s/%s", ts.mainDirectory, channelTransitionFile ) );
+    //newend
 
     LogUtils.suppressDebugLogs( true );
 
@@ -113,7 +120,8 @@ public class TrsaAuditel {
         preferenceCachePath,
         groupTypeEvolutionCachePath,
         schedulingCachePath,
-        ts );
+        transitionCachePath,  //new
+        ts);
     final int result = job.waitForCompletion( true ) ? 0 : 1;
     if( result != 0 ) {
       System.exit( result );
@@ -134,8 +142,9 @@ public class TrsaAuditel {
         preferenceCachePath,
         groupTypeEvolutionCachePath,
         schedulingCachePath,
+        transitionCachePath, //new
         epfOutPath,
-        ts );
+        ts);
 
     final int mainResult = mainJob.waitForCompletion( true ) ? 0 : 1;
     if( mainResult != 0 ) {
@@ -154,7 +163,7 @@ public class TrsaAuditel {
    */
 
   private static TrsaArguments parseArguments( String[] args ) {
-    if( args.length < 5 ) {
+    if( args.length < 6 ) {  //new: erano 5
       printUsage();
       System.exit( 1 );
     }
@@ -165,8 +174,11 @@ public class TrsaAuditel {
     ts.outputDirectory = args[2];
     ts.ageClasses = args[3].substring( format( "%s=", ageClassesLabel ).length() );
     ts.timeSlot = args[4].substring( format( "%s=", timeSlotLabel ).length() );
+    //new
+    ts.transitionValue = args[5].substring( format( "%s=", transitionValueLabel).length() );
+    //newend
 
-    if( args.length > 5 ) {
+    if( args.length > 6 ) { //new: era 5
       final boolean[] initialized = {false, false, false, false};
 
       for( String arg : args ) {
@@ -282,8 +294,8 @@ public class TrsaAuditel {
         + "input and output directories.%n" );
     System.out.printf
       ( "<inputDir>: input directory which must contain the files "
-        + "\"%s\", \"%s\", \"%s\".%n",
-        groupTypeEvolutionFile, sequenceFile, preferenceFile );
+        + "\"%s\", \"%s\", \"%s\", \"%s\".%n",
+        groupTypeEvolutionFile, sequenceFile, preferenceFile, channelTransitionFile ); //new
     System.out.printf
       ( "<outputDir>: output directory in which the output will be saved.%n" );
     System.out.printf
@@ -291,6 +303,10 @@ public class TrsaAuditel {
         ageClassesLabel );
     System.out.printf
       ( "%s=<timeSlot> initial time slot%n", timeSlotLabel );
+    //new
+    System.out.printf
+      ( "%s=<transitionValueLabel> indicates the transition value between two channels%n", transitionValueLabel );
+    //newend
     System.out.printf
       ( "Optional parameters:%n" );
     System.out.printf
@@ -322,6 +338,9 @@ public class TrsaAuditel {
     private Integer initialTemperature;
     private String ageClasses;
     private String timeSlot;
+    //new
+    private String transitionValue;
+    //newend
 
     //private Boolean dynamic;
     //private Double historicalPercentage;
@@ -337,6 +356,9 @@ public class TrsaAuditel {
       initialTemperature = defaultInitialTemperature;
       ageClasses = null;
       timeSlot = null;
+      //new
+      transitionValue = null;
+      //newend
     }
   }
 
@@ -350,6 +372,7 @@ public class TrsaAuditel {
    * @param outPath
    * @param preferencePath
    * @param groupTypeEvolutionPath
+   * @param transitionCachePath
    * @param arguments
    * @return
    * @throws IOException
@@ -363,6 +386,7 @@ public class TrsaAuditel {
     Path preferencePath,
     Path groupTypeEvolutionPath,
     Path schedulingCachePath,
+    Path transitionCachePath, //new
     TrsaArguments arguments )
     throws IOException,
     ClassNotFoundException,
@@ -383,6 +407,11 @@ public class TrsaAuditel {
     if( schedulingCachePath == null ) {
       throw new NullPointerException();
     }
+    //new
+    if( transitionCachePath == null ) {
+      throw new NullPointerException();
+    }
+    //newend
     if( arguments == null ) {
       throw new NullPointerException();
     }
@@ -396,10 +425,16 @@ public class TrsaAuditel {
     configuration.set( sequenceFileLabel, sequenceFile );
     configuration.set( userPreferenceFileLabel, preferenceFile );
     configuration.set( schedulingFileLabel, schedulingFile );
+    //new
+    configuration.set( channelTransitionFileLabel, channelTransitionFile );
+    //newend
     configuration.set( maxPerturbationsLabel, arguments.maxPerturbations.toString() );
     configuration.set( initialTemperatureLabel, arguments.initialTemperature.toString() );
     configuration.set( ageClassesLabel, arguments.ageClasses );
     configuration.set( timeSlotLabel, arguments.timeSlot );
+    //new
+    configuration.set( transitionValueLabel, arguments.transitionValue );
+    //newend
 
     final Job job = Job.getInstance( configuration );
     job.setJarByClass( TrsaAuditel.class );
@@ -412,6 +447,9 @@ public class TrsaAuditel {
     job.addCacheFile( cfs.resolvePath( preferencePath ).toUri() );
     job.addCacheFile( cfs.resolvePath( groupTypeEvolutionPath ).toUri() );
     job.addCacheFile( cfs.resolvePath( schedulingCachePath ).toUri() );
+    //new
+    job.addCacheFile( cfs.resolvePath( transitionCachePath ).toUri() );
+    //newend
 
     // -------------------------------------------------------------------------
 
@@ -437,6 +475,7 @@ public class TrsaAuditel {
    * @param preferenceCachePath
    * @param groupTypeEvolutionCachePath
    * @param schedulingCachePath
+   * @param transitionCachePath
    * @param epfOutPath
    * @param arguments
    * @return
@@ -449,6 +488,7 @@ public class TrsaAuditel {
     Path preferenceCachePath,
     Path groupTypeEvolutionCachePath,
     Path schedulingCachePath,
+    Path transitionCachePath,  //new
     Path epfOutPath,
     TrsaArguments arguments )
     throws IOException {
@@ -468,6 +508,11 @@ public class TrsaAuditel {
     if( schedulingCachePath == null ) {
       throw new NullPointerException();
     }
+    //new
+    if( transitionCachePath == null ) {
+      throw new NullPointerException();
+    }
+    //newend
     if( epfOutPath == null ) {
       throw new NullPointerException();
     }
@@ -485,11 +530,17 @@ public class TrsaAuditel {
     configuration.set( groupTypeEvoFileLabel, groupTypeEvolutionFile );
     configuration.set( schedulingFileLabel, schedulingFile );
     configuration.set( userPreferenceFileLabel, preferenceFile );
+    //new
+    configuration.set( channelTransitionFileLabel, channelTransitionFile );
+    //newend
     configuration.set( paretoFileLabel, paretoFileSuffix );
     configuration.set( maxPerturbationsLabel, arguments.maxPerturbations.toString() );
     configuration.set( initialTemperatureLabel, arguments.initialTemperature.toString() );
     configuration.set( ageClassesLabel, arguments.ageClasses );
     configuration.set( timeSlotLabel, arguments.timeSlot );
+    //new
+    configuration.set( transitionValueLabel, arguments.transitionValue );
+    //newend
 
     final Job job = Job.getInstance( configuration );
     job.setJarByClass( TrsaAuditel.class );
@@ -502,6 +553,9 @@ public class TrsaAuditel {
     job.addCacheFile( cfs.resolvePath( preferenceCachePath ).toUri() );
     job.addCacheFile( cfs.resolvePath( groupTypeEvolutionCachePath ).toUri() );
     job.addCacheFile( cfs.resolvePath( schedulingCachePath ).toUri() );
+    //new
+    job.addCacheFile( cfs.resolvePath( transitionCachePath ).toUri() );
+    //newend
     job.addCacheFile( cfs.resolvePath( epfOutPath ).toUri() );
 
     // -------------------------------------------------------------------------
