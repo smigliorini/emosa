@@ -6,6 +6,7 @@ import edu.umn.cs.spatialHadoop.core.SpatialSite;
 import it.univr.auditel.entities.GContext;
 import it.univr.auditel.entities.ProgramRecord;
 import it.univr.auditel.entities.UserPreference;
+import it.univr.auditel.entities.ChannelTransition;
 import it.univr.veronacard.shadoop.core.TripValue;
 import org.apache.commons.lang.time.DateUtils;
 import org.apache.hadoop.fs.FileStatus;
@@ -152,7 +153,7 @@ public class FileReader {
     return result;
   }
 
-  
+
   /**
    * MISSING_COMMENT
    *
@@ -487,5 +488,65 @@ public class FileReader {
     }
     return value;
   }
+
+  //new
+  /**
+   * MISSING_COMMENT
+   *
+   * @param line
+   * @param transitions
+   */
+
+  private static void processChannelTransitionLine
+  ( String line, Map<String, List<ChannelTransition>> transitions ) {
+
+    if( line == null ) {
+      throw new NullPointerException();
+    }
+    if( transitions == null ) {
+      throw new NullPointerException();
+    }
+
+    final StringTokenizer tk = new StringTokenizer( line, "," );
+    final ChannelTransition trans = new ChannelTransition();
+
+    int i = 0;
+    while( tk.hasMoreTokens() ) {
+      final String current = tk.nextToken().replace( "\"", "" );
+
+      if( i == 0 ) {
+        trans.setChannelId1( current );
+        i++;
+
+      } else if( i == 1 ) {
+        trans.setChannelId2( current );
+        i++;
+
+      } else if( i == 2 ) {
+        try {
+          if( current.equals( "NaN" ) ) {
+            trans.setPreferenceTransition( 0.0 );
+          } else {
+            final NumberFormat f = NumberFormat.getInstance( Locale.US );
+            final Double value = f.parse( current ).doubleValue();
+            trans.setPreferenceTransition( value );
+          }
+        } catch( ParseException e ) {
+          System.out.printf
+                  ( "Unable to convert number \"%s\" in line \"%s\".%n",
+                          current, line );
+        }
+        i++;
+      }
+    }
+
+    List<ChannelTransition> ptlist = transitions.get( trans.getChannelId1() );
+    if( ptlist == null ) {
+      ptlist = new ArrayList<>();
+    }
+    ptlist.add( trans );
+    transitions.put( trans.getChannelId1(), ptlist );
+  }
+  //newend
 
 }

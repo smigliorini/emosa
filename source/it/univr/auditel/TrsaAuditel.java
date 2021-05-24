@@ -64,7 +64,7 @@ public class TrsaAuditel {
   public static final String userPreferenceFileLabel = "user_preference";
   public static final String schedulingFileLabel = "scheduling";
   //new
-  public static final String channelTransitionFileLabel = "try";
+  public static final String channelTransitionFileLabel = "channel_transition";
   //endnew
 
   // TODO: FAST FIX, assume maximum POI id = 30
