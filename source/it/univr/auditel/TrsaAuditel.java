@@ -52,6 +52,9 @@ public class TrsaAuditel {
   public static final String sequenceFile = "sequences.csv";
   public static final String preferenceFile = "user_channel_timeslot_wdwe_seconds_preference.csv";
   public static final String schedulingFile = "epg_program_scheduling.csv";
+  //new
+  public static final String channelTransitionFile = "channel_transition.csv";
+  //endnew
 
   public static final String paretoFileSuffix = "epf";
 
@@ -60,6 +63,9 @@ public class TrsaAuditel {
   public static final String sequenceFileLabel = "sequence";
   public static final String userPreferenceFileLabel = "user_preference";
   public static final String schedulingFileLabel = "scheduling";
+  //new
+  public static final String channelTransitionFileLabel = "try";
+  //endnew
 
   // TODO: FAST FIX, assume maximum POI id = 30
   // substitute with list of POI ids
