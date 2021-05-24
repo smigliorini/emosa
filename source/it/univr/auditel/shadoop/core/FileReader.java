@@ -203,6 +203,45 @@ public class FileReader {
     return paretoFront;
   }
 
+  //new
+  /**
+   * MISSING_COMMENT
+   *
+   * @param hdfs
+   * @param channelTransitionFile
+   * @return
+   */
+
+  public static Map<String, List<ChannelTransition>> readChannelTransition
+  ( FileSystem hdfs, URI channelTransitionFile ) {
+
+    if( hdfs == null ) {
+      throw new NullPointerException();
+    }
+    if( channelTransitionFile == null ) {
+      throw new NullPointerException();
+    }
+
+    final Map<String, List<ChannelTransition>> result = new HashMap<>();
+
+    try {
+      try( BufferedReader br = new BufferedReader
+              ( new InputStreamReader( hdfs.open( new Path( channelTransitionFile ) ) ) ) ) {
+        String line;
+
+        while( ( line = br.readLine() ) != null ) {
+          processChannelTransitionLine( line, result );
+        }
+      }
+    } catch( IOException e ) {
+      // nothing here
+    }
+    return result;
+
+  }
+  //newend
+
+
   // ===========================================================================
 
   /**
