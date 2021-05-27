@@ -305,7 +305,7 @@ public class TrsaAuditel {
       ( "%s=<timeSlot> initial time slot%n", timeSlotLabel );
     //new
     System.out.printf
-      ( "%s=<transitionValueLabel> indicates the transition value between two channels%n", transitionValueLabel );
+      ( "%s=<transitionValue> indicates the transition value between two channels%n", transitionValueLabel );
     //newend
     System.out.printf
       ( "Optional parameters:%n" );

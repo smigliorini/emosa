@@ -39,6 +39,9 @@ public class EstParetoFrontMapper
   private Map<GContext, Map<GContext, Double>> groupTypeEvolutionMap;
   private Map<String, List<UserPreference>> preferenceMap;
   private Map<Date, Map<String, List<ProgramRecord>>> schedulingMap;
+  //new
+  private Map<String, List<ChannelTransition>> transitionMap;
+  //endnew
   private GContext initialContext;
   private Integer maxDuration;
   private FileSystem hdfs;
@@ -58,10 +61,14 @@ public class EstParetoFrontMapper
     hdfs = FileSystem.get( configuration );
     final URI[] cachedFiles = context.getCacheFiles();
 
-    if( cachedFiles != null && cachedFiles.length == 3 ) {
+    if( cachedFiles != null && cachedFiles.length == 4 ) {  // era 3
       final String groupTypeEvo = configuration.get( groupTypeEvoFileLabel );
       final String preference = configuration.get( userPreferenceFileLabel );
       final String scheduling = configuration.get( schedulingFileLabel );
+      //new
+      final String transition = configuration.get( channelTransitionFileLabel );
+      //endnew
+
 
       for( int i = 0; i < cachedFiles.length; i++ ) {
         final URI uri = cachedFiles[i];
@@ -72,7 +79,12 @@ public class EstParetoFrontMapper
         } else if( uri.getPath().endsWith( scheduling ) ) {
           schedulingMap = readScheduling( hdfs, uri );
         }
-      }//*/
+        //new
+        else if( uri.getPath().endsWith( transition ) ) {
+          transitionMap = readChannelTransition( hdfs, uri );
+        }
+        //endnew
+      }
     }
 
     initialContext = new GContext();
