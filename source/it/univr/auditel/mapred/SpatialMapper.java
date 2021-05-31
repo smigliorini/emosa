@@ -49,6 +49,9 @@ public class SpatialMapper
   private Map<GContext, Map<GContext, Double>> groupTypeEvolutionMap;
   private Map<String, List<UserPreference>> preferenceMap;
   private Map<Date, Map<String, List<ProgramRecord>>> schedulingMap;
+  //new
+  private Map<String, List<ChannelTransition>> transitionMap;
+  //endnew
   private GContext initialContext;
   private FileSystem hdfs;
 
@@ -81,10 +84,13 @@ public class SpatialMapper
     hdfs = FileSystem.get( configuration );
     final URI[] cachedFiles = context.getCacheFiles();
 
-    if( cachedFiles != null && cachedFiles.length == 4 ) {
+    if( cachedFiles != null && cachedFiles.length == 5 ) {   // era 4
       final String groupTypeEvo = configuration.get( groupTypeEvoFileLabel );
       final String preference = configuration.get( userPreferenceFileLabel );
       final String scheduling = configuration.get( schedulingFileLabel );
+      //new
+      final String transition = configuration.get( channelTransitionFileLabel );
+      //endnew
       final String estPareto = configuration.get( paretoFileLabel );
 
       for( int i = 0; i < cachedFiles.length; i++ ) {
@@ -95,7 +101,13 @@ public class SpatialMapper
           preferenceMap = readUserPreferences( hdfs, uri );
         } else if( uri.getPath().endsWith( scheduling )){
           schedulingMap = readScheduling( hdfs, uri );
-        } else if( uri.getPath().endsWith( estPareto ) ) {
+        }
+        //new
+        else if( uri.getPath().endsWith( transition ) ) {
+          transitionMap = readChannelTransition( hdfs, uri );
+        }
+        //endnew
+        else if( uri.getPath().endsWith( estPareto ) ) {
           paretoFront = readParetoFrontFromHdfs( hdfs, uri );
         }
       }
