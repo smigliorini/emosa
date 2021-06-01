@@ -29,7 +29,7 @@ Input contiene il dataset, in particolare si notano 5 file .csv:
 - group _ type _ evolution.csv: contiene le possibili evoluzioni di un gruppo dato il suo tipo.
 - user _ channel _ timeslot _ wdwe _ seconds _ preferences.csv: contiene le preferenze dei singoli utenti per time slot e giorno della settimana.
 - sequences _ history.csv: è l'input vero e proprio, contiene le sequenze passate su cui eseguire l'algoritmo.
-- veronacard _ astext _ 05.csv: contiene altre informazioni (specificare poi quali)
+- veronacard _ astext _ 05.csv: inserito nella directory principale ma non utile al nostro scopo
 
 Output contiene i risultati, sempre in formato .csv, in particolare viene creata una cartella da 0 a n in base a quante volte il programma viene invocato.
 
@@ -129,7 +129,7 @@ Il processo di esecuzione completo (esecuzione dei Map & Reduce Tasks) è contro
 Un lavoro è suddiviso in più attività che vengono quindi eseguite su più nodi di dati in un cluster. È responsabilità del job tracker coordinare l'attività pianificando l'esecuzione delle attività su diversi nodi di dati. L'esecuzione delle singole attività deve quindi essere gestita dal task tracker, che risiede su ogni nodo di dati che esegue parte del lavoro. La responsabilità del task tracker è di inviare il rapporto sullo stato di avanzamento al job tracker. Inoltre, il task tracker invia periodicamente un segnale "heartbeat" a Jobtracker in modo da informarlo dello stato corrente del sistema. In questo modo il job tracker tiene traccia dell'avanzamento complessivo di ogni lavoro. In caso di fallimento dell'attività, il job tracker può riprogrammarla su un altro task tracker.
 
 
-### Implementazione
+### Implementazione iniziale
 - package it.univr.auditel
 - importare tutte le librerie necessarie
 
@@ -153,11 +153,14 @@ Un lavoro è suddiviso in più attività che vengono quindi eseguite su più nod
 - Funzionamento in Hadoop (e anche su IntelliJ): la cartella trsa_auditel contiene 2 sotto cartelle, input e output, la prima deve contenere sequencies history .csv, la seconda deve contenere sotto cartelle da 0 a N in base a quale istruzione viene scelta che poi produrrà file di output; gli altri file csv rimangono nella cartella main.
 
 #### TODO
-- Domanda di laurea con titolo tesi (inglese o italiano?)
-- Data Analytics: ..... intro
-- Spiegazione generale con funzionamento archietettura
+- Presentazione finale con orale (15 minuti circa)
+- Spiegazione generale con funzionamento architettura
 - Approfondimento tematica principale
-- Latex document con .bib
+- Latex document personale
+
+### Lista canali
+- generare poi tutte le combinazioni ed assegnare un double che indica la probabilità di switching da un canale all'altro (channel_transition.csv)
+- canali assenti : 24 (da 1 a 121 inclusi, quindi in totale ci sono 120 canali e non 119 come scritto nel paper)
 
 
 
