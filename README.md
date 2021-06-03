@@ -152,15 +152,27 @@ Un lavoro è suddiviso in più attività che vengono quindi eseguite su più nod
 
 - Funzionamento in Hadoop (e anche su IntelliJ): la cartella trsa_auditel contiene 2 sotto cartelle, input e output, la prima deve contenere sequencies history .csv, la seconda deve contenere sotto cartelle da 0 a N in base a quale istruzione viene scelta che poi produrrà file di output; gli altri file csv rimangono nella cartella main.
 
-#### TODO
+### Lista canali
+- generate tutte le combinazioni ed assegnare un double che indica la probabilità di switching da un canale all'altro (channel_transition.csv)
+- canali : da 1 a 121 inclusi (tranne il 24), quindi in totale ci sono 120 canali e non 119 come scritto nel paper)
+
+#### TODO - tesi
 - Presentazione finale con orale (15 minuti circa)
 - Spiegazione generale con funzionamento architettura
 - Approfondimento tematica principale
 - Latex document personale
 
-### Lista canali
-- generare poi tutte le combinazioni ed assegnare un double che indica la probabilità di switching da un canale all'altro (channel_transition.csv)
-- canali assenti : 24 (da 1 a 121 inclusi, quindi in totale ci sono 120 canali e non 119 come scritto nel paper)
+#### TODO - progetto
+- Modificare le classi contenenti i metodi MapReduce (setup), passando la transitionMap.
+- Nella classe ViewSequenceValue, nel metodo viene calcolata la preferenza. Dobbiamo introdurre anche una preferenza che dipende dalla transizione dei canali.
+- Per calcolare il ViewSequenceValue nel costruttore, oltre a passare la sequenza, la preferenceMap e lo schedulingMap, devo aggiungere anche la transitionMap.
+- Poi devo cambiare il metodo writeReadField() e il toString(), sulla falsa riga di quello già fatto per le userPreferences.
+- Altra cosa il metodo dominate(), dove invece esserci solo 4 valori, dovrò metterne 5 in cui andrò a confrontare anche (avrò un metodo da fare chiamato compareTransition)
+- La mia proprietà potrebbe essere una lista di Double in cui ad ogni elemento ci assegno la preferenza di fare la transizione da un canale al successivo; quindi ho la channelSequence dentro la classe contenente la sequenza di canali che va a guardare l'utente, l'altra proprietà è una lista di Double che sono le transitionPreferences, dove l'elemento 0 diventa la preferenza associata alla transizione dela canale da 0 a 1, il secondo elemento è la preferenza nel fare la transizione da 1 a 2 e così via. Quindi nel costruttore ricevo la mappa che ho costruito prima, ma che poi mi servirà per inizializzare questa lista di Double che mi daranno la preferenza di transizione fra ogni coppia, quindi nella posizione i ci metto la preferenza di fare la transizione da i a i+1, in modo tale che quando andrò a calcolare la dominate(), nel fare il compare channelPreference dovrò fare: sommare tutte i Double e trovare un numero unico, a questo punto se il numero di *other* ottenuto è più piccolo del numero di *this*, quella dominate() tornerà true, altrimenti false (gli Objective value vengono confrontati tutti). Quindi andrò a calcolare un objective value 4, cioè nella quinta posizione, che fa questo compare(), che valuta se *this* > *other* per quella componente e ritorna un int, come il classico compareTo() di Java (0 se sono uguali, 1 se il primo > del secondo, -1 se è minore). 
+- Dopo aver fatto queste modifiche opererò su un altro punto del programma, il ViewSequenceWritable, che prende una lista di visioni e lo adatterò successivamente.
+- Riassumendo: aggiungiamo questa nuova funzione obiettivo, poi la devo far lavorare nelle perturbazioni, cioè data una sequenza devo operare dei microcambiamenti, quindi cambiare un programma in mezzo, valutando quindi se la nuova soluzione è migliore di quella precedente, tenendo quindi conto della nuova preferenza di transizione dei canali dentro la sequenza, quindi invece di tenere un valore unico, ci interessa la somma alla fine, tengo tutta la lista, perchè quando vado a perturbare (cambio un elemento all'interno della sequenza) mi basterà cambiare un solo elemento anche nella sequenza delle preferenze di transizione.
+
+
 
 
 
