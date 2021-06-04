@@ -154,6 +154,7 @@ public class SpatialMapper
         ( sequence,
           schedulingMap,
           preferenceMap,
+          transitionMap, // aggiunto param
           duration - durationOffset,//minDuration,
           duration + durationOffset,//maxDuration,
           paretoSet,

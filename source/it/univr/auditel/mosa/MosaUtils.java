@@ -5,6 +5,9 @@ import it.univr.auditel.entities.ProgramRecord;
 import it.univr.auditel.entities.UserPreference;
 import it.univr.auditel.shadoop.core.ViewSequenceValue;
 import it.univr.auditel.shadoop.core.ViewSequenceWritable;
+//new
+import it.univr.auditel.entities.ChannelTransition;
+//endnew
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -53,6 +56,8 @@ public class MosaUtils {
    * @param minDuration
    * @param maxDuration
    * @param preferenceMap
+   * @param scheduling
+   * @param transitionMap
    * @return
    */
 
@@ -62,7 +67,8 @@ public class MosaUtils {
     int minDuration,
     int maxDuration,
     Map<String, List<UserPreference>> preferenceMap,
-    Map<Date, Map<String, List<ProgramRecord>>> scheduling ) {
+    Map<Date, Map<String, List<ProgramRecord>>> scheduling,
+    Map<String, List<ChannelTransition>> transitionMap) { // aggiunto param
 
     if( a == null ) {
       throw new NullPointerException();
@@ -76,9 +82,14 @@ public class MosaUtils {
     if( scheduling == null ) {
       throw new NullPointerException();
     }
+    //new
+    if( transitionMap == null ) {
+      throw new NullPointerException();
+    }
+    //newend
 
-    final ViewSequenceValue va = new ViewSequenceValue( a, preferenceMap, scheduling );
-    final ViewSequenceValue vb = new ViewSequenceValue( b, preferenceMap, scheduling );
+    final ViewSequenceValue va = new ViewSequenceValue( a, preferenceMap, scheduling, transitionMap ); // aggiunto param
+    final ViewSequenceValue vb = new ViewSequenceValue( b, preferenceMap, scheduling, transitionMap ); // aggiunto param
     return va.dominate( vb, minDuration, maxDuration );
   }
 
@@ -89,13 +100,16 @@ public class MosaUtils {
    *
    * @param paretoSet
    * @param preferenceMap
+   * @param schedulingMap
+   * @param transitionMap
    * @return
    */
 
   public static Set<ViewSequenceValue> computeParetoFront
   ( Set<ViewSequenceWritable> paretoSet,
     Map<String, List<UserPreference>> preferenceMap,
-    Map<Date, Map<String, List<ProgramRecord>>> schedulingMap ) {
+    Map<Date, Map<String, List<ProgramRecord>>> schedulingMap,
+    Map<String, List<ChannelTransition>> transitionMap) { // aggiunto param
 
     if( paretoSet == null ) {
       throw new NullPointerException();
@@ -106,10 +120,15 @@ public class MosaUtils {
     if( schedulingMap == null ) {
       throw new NullPointerException();
     }
+    //new
+    if( transitionMap == null ) {
+      throw new NullPointerException();
+    }
+    //newend
 
     final Set<ViewSequenceValue> paretoFront = new HashSet<>( paretoSet.size() );
     for( ViewSequenceWritable t : paretoSet ) {
-      paretoFront.add( new ViewSequenceValue( t, preferenceMap, schedulingMap ) );
+      paretoFront.add( new ViewSequenceValue( t, preferenceMap, schedulingMap, transitionMap ) );  //aggiunto param
     }
     return paretoFront;
   }
@@ -124,6 +143,8 @@ public class MosaUtils {
    * @param minDuration
    * @param maxDuration
    * @param preferenceMap
+   * @param schedulingMap
+   * @param transitionMap
    * @return
    */
 
@@ -133,7 +154,8 @@ public class MosaUtils {
     int minDuration,
     int maxDuration,
     Map<String, List<UserPreference>> preferenceMap,
-    Map<Date, Map<String, List<ProgramRecord>>> schedulingMap ) {
+    Map<Date, Map<String, List<ProgramRecord>>> schedulingMap,
+    Map<String, List<ChannelTransition>> transitionMap) { // aggiunto param
 
     if( sequence == null ) {
       throw new NullPointerException();
@@ -147,13 +169,18 @@ public class MosaUtils {
     if( schedulingMap == null ) {
       throw new NullPointerException();
     }
+    //new
+    if( transitionMap == null ) {
+      throw new NullPointerException();
+    }
+    //newend
 
     final Set<ViewSequenceValue> paretoFront =
-      computeParetoFront( paretoSet, preferenceMap, schedulingMap );
+      computeParetoFront( paretoSet, preferenceMap, schedulingMap, transitionMap );  // aggiunto param
     return energy_
       ( sequence, paretoFront,
         minDuration, maxDuration,
-        preferenceMap, schedulingMap );
+        preferenceMap, schedulingMap, transitionMap );  // aggiunto param
   }
 
 
@@ -167,6 +194,7 @@ public class MosaUtils {
    * @param maxDuration
    * @param preferenceMap
    * @param schedulingMap
+   * @param transitionMap
    * @return
    */
 
@@ -176,7 +204,8 @@ public class MosaUtils {
     int minDuration,
     int maxDuration,
     Map<String, List<UserPreference>> preferenceMap,
-    Map<Date, Map<String, List<ProgramRecord>>> schedulingMap ) {
+    Map<Date, Map<String, List<ProgramRecord>>> schedulingMap,
+    Map<String, List<ChannelTransition>> transitionMap) { // aggiunto param
 
     if( sequence == null ) {
       throw new NullPointerException();
@@ -190,10 +219,15 @@ public class MosaUtils {
     if( schedulingMap == null ) {
       throw new NullPointerException();
     }
+    //new
+    if( transitionMap == null ) {
+      throw new NullPointerException();
+    }
+    //newend
 
     final ViewSequenceValue svalue =
       new ViewSequenceValue
-        ( sequence, preferenceMap, schedulingMap );
+        ( sequence, preferenceMap, schedulingMap, transitionMap ); // aggiunto param
 
     int energy = 0;
     for( ViewSequenceValue d : paretoFront ) {
@@ -217,6 +251,7 @@ public class MosaUtils {
    * @param maxDuration
    * @param preferenceMap
    * @param schedulingMap
+   * @param transitionMap
    * @return
    */
 
@@ -227,7 +262,8 @@ public class MosaUtils {
     int minDuration,
     int maxDuration,
     Map<String, List<UserPreference>> preferenceMap,
-    Map<Date, Map<String, List<ProgramRecord>>> schedulingMap ) {
+    Map<Date, Map<String, List<ProgramRecord>>> schedulingMap,
+    Map<String, List<ChannelTransition>> transitionMap) { // aggiunto param
 
     if( currentSolution == null ) {
       throw new NullPointerException();
@@ -244,22 +280,27 @@ public class MosaUtils {
     if( schedulingMap == null ) {
       throw new NullPointerException();
     }
+    //new
+    if( transitionMap == null ) {
+      throw new NullPointerException();
+    }
+    //newend
 
     final Set<ViewSequenceWritable> pSet = new HashSet<>( paretoSet.size() + 2 );
     pSet.addAll( paretoSet );
     pSet.add( currentSolution );
     pSet.add( newSolution );
     final Set<ViewSequenceValue> paretoFront =
-      computeParetoFront( pSet, preferenceMap, schedulingMap );
+      computeParetoFront( pSet, preferenceMap, schedulingMap, transitionMap ); // aggiunto param
 
     final double currEnergy = energy_
       ( currentSolution, paretoFront,
         minDuration, maxDuration,
-        preferenceMap, schedulingMap );
+        preferenceMap, schedulingMap, transitionMap );  // aggiunto param
     final double newEnergy = energy_
       ( newSolution, paretoFront,
         minDuration, maxDuration,
-        preferenceMap, schedulingMap );
+        preferenceMap, schedulingMap, transitionMap );  // aggiunto param
 
     final double energyDiff = ( newEnergy - currEnergy ) / paretoFront.size();
     return energyDiff;
@@ -278,6 +319,7 @@ public class MosaUtils {
    * @param maxDuration
    * @param preferenceMap
    * @param schedulingMap
+   * @param transitionMap
    * @return
    */
 
@@ -288,7 +330,8 @@ public class MosaUtils {
     int minDuration,
     int maxDuration,
     Map<String, List<UserPreference>> preferenceMap,
-    Map<Date, Map<String, List<ProgramRecord>>> schedulingMap ) {
+    Map<Date, Map<String, List<ProgramRecord>>> schedulingMap,
+    Map<String, List<ChannelTransition>> transitionMap) { // aggiunto param
 
     if( currentSolution == null ) {
       throw new NullPointerException();
@@ -305,21 +348,25 @@ public class MosaUtils {
     if( schedulingMap == null ) {
       throw new NullPointerException();
     }
-
+    //new
+    if( transitionMap == null ) {
+      throw new NullPointerException();
+    }
+    //newend
 
     final Set<ViewSequenceWritable> pSet = new HashSet<>( 2 );
     pSet.add( currentSolution );
     pSet.add( newSolution );
-    paretoFront.addAll( computeParetoFront( pSet, preferenceMap, schedulingMap ) );
+    paretoFront.addAll( computeParetoFront( pSet, preferenceMap, schedulingMap, transitionMap ) ); // aggiunto param
 
     final double currEnergy = energy_
       ( currentSolution, paretoFront,
         minDuration, maxDuration,
-        preferenceMap, schedulingMap );
+        preferenceMap, schedulingMap, transitionMap );  // aggiunto param
     final double newEnergy = energy_
       ( newSolution, paretoFront,
         minDuration, maxDuration,
-        preferenceMap, schedulingMap );
+        preferenceMap, schedulingMap, transitionMap );  // aggiunto param
 
     final double energyDiff = ( newEnergy - currEnergy ) / paretoFront.size();
     return energyDiff;
@@ -339,6 +386,7 @@ public class MosaUtils {
    * @param maxDuration
    * @param preferenceMap
    * @param schedulingMap
+   * @param transitionMap
    * @return
    */
 
@@ -350,7 +398,8 @@ public class MosaUtils {
     int minDuration,
     int maxDuration,
     Map<String, List<UserPreference>> preferenceMap,
-    Map<Date, Map<String, List<ProgramRecord>>> schedulingMap ) {
+    Map<Date, Map<String, List<ProgramRecord>>> schedulingMap,
+    Map<String, List<ChannelTransition>> transitionMap) { // aggiunto param
 
     if( currentSolution == null ) {
       throw new NullPointerException();
@@ -367,12 +416,17 @@ public class MosaUtils {
     if( schedulingMap == null ) {
       throw new NullPointerException();
     }
+    //new
+    if( transitionMap == null ) {
+      throw new NullPointerException();
+    }
+    //newend
 
     double energyDifference = energyDifference_
       ( currentSolution, newSolution,
         paretoSet,
         minDuration, maxDuration,
-        preferenceMap, schedulingMap );
+        preferenceMap, schedulingMap, transitionMap ); // aggiunto param
     return min( 1, exp( -energyDifference / temperature ) );
   }
 
@@ -389,6 +443,7 @@ public class MosaUtils {
    * @param maxDuration
    * @param preferenceMap
    * @param schedulingMap
+   * @param transitionMap
    * @return
    */
 
@@ -400,7 +455,8 @@ public class MosaUtils {
     int minDuration,
     int maxDuration,
     Map<String, List<UserPreference>> preferenceMap,
-    Map<Date, Map<String, List<ProgramRecord>>> schedulingMap ) {
+    Map<Date, Map<String, List<ProgramRecord>>> schedulingMap,
+    Map<String, List<ChannelTransition>> transitionMap) { // aggiunto param
 
     if( currentSolution == null ) {
       throw new NullPointerException();
@@ -417,6 +473,11 @@ public class MosaUtils {
     if( schedulingMap == null ) {
       throw new NullPointerException();
     }
+    //new
+    if( transitionMap == null ) {
+      throw new NullPointerException();
+    }
+    //newend
 
     // --- fix for duration ----------------------------------------------------
     if( currentSolution.getDuration() > maxDuration &&
@@ -433,7 +494,7 @@ public class MosaUtils {
 
     double energyDifference = energyDifference
       ( currentSolution, newSolution, paretoFront,
-        minDuration, maxDuration, preferenceMap, schedulingMap );
+        minDuration, maxDuration, preferenceMap, schedulingMap, transitionMap ); // aggiunto param
     return min( 1, exp( -energyDifference / temperature ) );
   }
 
@@ -450,6 +511,7 @@ public class MosaUtils {
    * @param maxDuration
    * @param preferenceMap
    * @param schedulingMap
+   * @param transitionMap
    */
 
   public static void updateParetoSet
@@ -458,7 +520,8 @@ public class MosaUtils {
     Integer minDuration,
     Integer maxDuration,
     Map<String, List<UserPreference>> preferenceMap,
-    Map<Date, Map<String, List<ProgramRecord>>> schedulingMap ) {
+    Map<Date, Map<String, List<ProgramRecord>>> schedulingMap,
+    Map<String, List<ChannelTransition>> transitionMap) { // aggiunto param
 
     if( paretoSet == null ) {
       throw new NullPointerException();
@@ -472,15 +535,20 @@ public class MosaUtils {
     if( schedulingMap == null ) {
       throw new NullPointerException();
     }
+    //new
+    if( transitionMap == null ) {
+      throw new NullPointerException();
+    }
+    //newend
 
     final ViewSequenceValue v =
-      new ViewSequenceValue( newSol, preferenceMap, schedulingMap );
+      new ViewSequenceValue( newSol, preferenceMap, schedulingMap, transitionMap ); // aggiunto param
     final List<ViewSequenceWritable> dominatedSet = new ArrayList<>();
     boolean isDominated = false;
 
     for( ViewSequenceWritable t2 : paretoSet ) {
       final ViewSequenceValue v2 =
-        new ViewSequenceValue( t2, preferenceMap, schedulingMap );
+        new ViewSequenceValue( t2, preferenceMap, schedulingMap, transitionMap ); // aggiunto param
       if( v.dominate( v2, minDuration, maxDuration ) ) {
         dominatedSet.add( t2 );
       }
@@ -929,6 +997,7 @@ public class MosaUtils {
    * @param currentSol
    * @param schedulingMap
    * @param preferenceMap
+   * @param transitionMap
    * @param minDuration
    * @param maxDuration
    * @param paretoSet
@@ -945,6 +1014,9 @@ public class MosaUtils {
   ( ViewSequenceWritable currentSol,
     Map<Date, Map<String, List<ProgramRecord>>> schedulingMap,
     Map<String, List<UserPreference>> preferenceMap,
+    //new
+    Map<String, List<ChannelTransition>> transitionMap,
+    //newend
     Integer minDuration,
     Integer maxDuration,
     Set<ViewSequenceWritable> paretoSet,
@@ -1009,7 +1081,8 @@ public class MosaUtils {
             minDuration,
             maxDuration,
             preferenceMap,
-            schedulingMap );
+            schedulingMap,
+            transitionMap); // aggiunto param
 
         final double u = generator.nextDouble();
         if( u < p ) {
@@ -1017,7 +1090,7 @@ public class MosaUtils {
           updateParetoSet
             ( paretoSet, perturbSol,
               minDuration, maxDuration,
-              preferenceMap, schedulingMap );
+              preferenceMap, schedulingMap, transitionMap ); // aggiunto param
 
           // accept perturbSol in place of currentSol
           currentSol = perturbSol;
