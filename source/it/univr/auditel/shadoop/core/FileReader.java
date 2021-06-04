@@ -523,6 +523,18 @@ public class FileReader {
             value.addMissedProgramSeconds( u, m );
           }
           break;
+        //new
+        case 5:
+          final StringTokenizer ttk = new StringTokenizer( current, "," );
+          while( ttk.hasMoreTokens() ) {
+            final String icurr = ttk.nextToken();
+            final int index = icurr.indexOf( "-" );
+            final String u = icurr.substring( 0, index );
+            final Double p = Double.parseDouble( icurr.substring( index + 1 ) );
+            value.addTransitionPreference( u, p );
+          }
+          break;
+        //endnew
 
       }
       i++;

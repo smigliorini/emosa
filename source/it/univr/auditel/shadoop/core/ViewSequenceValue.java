@@ -50,6 +50,9 @@ public class ViewSequenceValue implements Writable {
   private List<String> channelSequence;
   private Map<String, Double> userPreferences;
   private Map<String, Integer> missedProgramSeconds;
+  //new
+  private Map<String, Double> transitionPreferences;
+  //endnew
 
   // === Methods ===============================================================
 
@@ -63,6 +66,9 @@ public class ViewSequenceValue implements Writable {
     channelSequence = new ArrayList<>();
     userPreferences = new HashMap<>();
     missedProgramSeconds = new HashMap<>();
+    //new
+    transitionPreferences = new HashMap<>();
+    //endnew
   }
 
 
@@ -72,12 +78,14 @@ public class ViewSequenceValue implements Writable {
    * @param sequence
    * @param preferenceMap
    * @param schedulingMap
+   * @param transitionMap
    */
 
   public ViewSequenceValue
   ( ViewSequenceWritable sequence,
     Map<String, List<UserPreference>> preferenceMap,
-    Map<Date, Map<String, List<ProgramRecord>>> schedulingMap ) {
+    Map<Date, Map<String, List<ProgramRecord>>> schedulingMap,
+    Map<String, List<ChannelTransition>> transitionMap) {   //new parameter
 
     if( sequence == null ) {
       throw new NullPointerException();
@@ -88,6 +96,11 @@ public class ViewSequenceValue implements Writable {
     if( schedulingMap == null ) {
       throw new NullPointerException();
     }
+    //new
+    if( transitionMap == null ) {
+      throw new NullPointerException();
+    }
+    //endnew
 
     if( !sequence.isEmpty() ) {
       final GroupView start = sequence.getSequence().get( 0 );
@@ -99,6 +112,9 @@ public class ViewSequenceValue implements Writable {
       channelSequence = new ArrayList<>();
       userPreferences = new HashMap<>();
       missedProgramSeconds = new HashMap<>();
+      //new
+      transitionPreferences = new HashMap<>();
+      //endnew
 
       for( GroupView v : sequence.getSequence() ) {
         channelSequence.add( v.getEpgChannelId() );
@@ -207,6 +223,23 @@ public class ViewSequenceValue implements Writable {
     missedProgramSeconds.put( program, seconds );
   }
 
+  //new
+  public Map<String, Double> getTransitionPreferences() {
+    return transitionPreferences;
+  }
+
+  public void setTransitionPreferences( Map<String, Double> transitionPreferences ) {
+    this.transitionPreferences = transitionPreferences;
+  }
+
+  public void addTransitionPreference( String channel, Double preference ) {
+    if( transitionPreferences == null ) {
+      transitionPreferences = new HashMap<>();
+    }
+    transitionPreferences.put( channel, preference );
+  }
+  //endnew
+
   // ===========================================================================
 
   /**
@@ -252,6 +285,18 @@ public class ViewSequenceValue implements Writable {
     } else {
       dataOutput.writeInt( 0 );
     }
+
+    //new
+    if( transitionPreferences != null && !transitionPreferences.isEmpty() ) {
+      dataOutput.writeInt( transitionPreferences.size() );
+      for( Map.Entry<String, Double> p : transitionPreferences.entrySet() ) {
+        dataOutput.writeUTF( p.getKey() );
+        dataOutput.writeDouble( p.getValue() );
+      }
+    } else {
+      dataOutput.writeInt( 0 );
+    }
+    //endnew
   }
 
   /**
@@ -286,6 +331,14 @@ public class ViewSequenceValue implements Writable {
     for( int i = 0; i < mSize; i++ ){
       missedProgramSeconds.put( dataInput.readUTF(), dataInput.readInt() );
     }
+
+    //new
+    final int tSize = dataInput.readInt();
+    transitionPreferences = new HashMap<>();
+    for( int i = 0; i < tSize; i++ ) {
+      transitionPreferences.put( dataInput.readUTF(), dataInput.readDouble() );
+    }
+    //endnew
   }
 
 
@@ -342,6 +395,22 @@ public class ViewSequenceValue implements Writable {
       }
     }
 
+    //new
+    if( transitionPreferences != null && !transitionPreferences.isEmpty() ) {
+      final Iterator<String> kit = transitionPreferences.keySet().iterator();
+      while( kit.hasNext() ) {
+        final String key = kit.next();
+        b.append( key );
+        b.append( "-" );
+        b.append( transitionPreferences.get( key ) );
+
+        if( kit.hasNext() ) {
+          b.append( "," );
+        }
+      }
+    }
+    //endnew
+
     b.append( "\t" );
 
     return b.toString();
@@ -364,6 +433,10 @@ public class ViewSequenceValue implements Writable {
       return false;
     if( userPreferences != null ? !userPreferences.equals( that.userPreferences ) : that.userPreferences != null )
       return false;
+    //new
+    if( transitionPreferences != null ? !transitionPreferences.equals( that.transitionPreferences ) : that.transitionPreferences != null )
+      return false;
+    //endnew
 
     return true;
   }
@@ -376,6 +449,9 @@ public class ViewSequenceValue implements Writable {
     result = 31 * result + duration;
     result = 31 * result + ( channelSequence != null ? channelSequence.hashCode() : 0 );
     result = 31 * result + ( userPreferences != null ? userPreferences.hashCode() : 0 );
+    //new
+    result = 31 * result + ( transitionPreferences != null ? transitionPreferences.hashCode() : 0 );
+    //endnew
     return result;
   }
 
@@ -404,11 +480,14 @@ public class ViewSequenceValue implements Writable {
       return false;
     }
 
-    int[] objValues = new int[4];
+    int[] objValues = new int[5];  // era 4
     objValues[0] = compareDuration( other, minDuration, maxDuration );
     objValues[1] = compareHistory( other );
     objValues[2] = comparePreference( other );
     objValues[3] = compareSingleDuration( other );
+    //new
+    objValues[4] = compareChannelPreference( other );
+    //endnew
 
     boolean e = true;
     boolean b = false;
@@ -676,4 +755,65 @@ public class ViewSequenceValue implements Writable {
       return worse;
     }
   }
+
+  //new
+  /**
+   * MISSING_COMMENT
+   *
+   * @param other
+   * @return
+   */
+
+  private int compareChannelPreference( ViewSequenceValue other ) {
+
+    if (other == null || other.transitionPreferences == null) {
+      return better;
+    }
+
+    if (this.transitionPreferences == null &&
+            other.transitionPreferences != null) {
+      if (other.transitionPreferences.isEmpty()) {
+        return equal;
+      } else {
+        return worse;
+      }
+    }
+
+    double tSum = 0;
+    for (double p : transitionPreferences.values()) {
+      tSum += tSum;
+    }
+    double tAvg = tSum / transitionPreferences.size();
+    double tStd = 0;
+    for (double p : transitionPreferences.values()) {
+      tStd += Math.pow((p - tAvg), 2);
+    }
+    tStd = Math.sqrt(tStd / transitionPreferences.size());
+
+    double sSum = 0;
+    for (double p : other.transitionPreferences.values()) {
+      sSum += sSum;
+    }
+    double sAvg = sSum / other.transitionPreferences.size();
+    double sStd = 0;
+    for (double p : other.transitionPreferences.values()) {
+      sStd += Math.pow((p - sAvg), 2);
+    }
+    sStd = Math.sqrt(sStd / other.transitionPreferences.size());
+
+    if (tAvg == sAvg && tStd == sStd) {
+      return equal;
+    } else if ((tAvg == sAvg && tStd > sStd) ||
+            (tAvg > sAvg && tStd == sStd) ||
+            (tAvg > sAvg && tStd > sStd)) {
+      return better;
+    } else if ((sAvg == tAvg && sStd > tStd) ||
+            (sAvg > tAvg && sStd == tStd) ||
+            (sAvg > tAvg && sStd > tStd)) {
+      return worse;
+    } else {
+      return equal;
+    }
+  }
+  //endnew
 }
