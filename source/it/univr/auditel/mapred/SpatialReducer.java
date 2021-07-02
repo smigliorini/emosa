@@ -45,6 +45,9 @@ public class SpatialReducer
 
   private Map<String, List<UserPreference>> preferenceMap;
   private Map<Date, Map<String, List<ProgramRecord>>> schedulingMap;
+  //new
+  private Map<String, List<ChannelTransition>> transitionMap;
+  //newend
   private FileSystem hdfs;
 
   // === Methods ===============================================================
@@ -61,6 +64,9 @@ public class SpatialReducer
       final String groupTypeEvo = configuration.get( groupTypeEvoFileLabel );
       final String preference = configuration.get( userPreferenceFileLabel );
       final String scheduling = configuration.get( schedulingFileLabel );
+      //new
+      final String channel_transition = configuration.get( channelTransitionFileLabel );
+      //newend
       final String estPareto = configuration.get( paretoFileLabel );
 
       for( int i = 0; i < cachedFiles.length; i++ ) {
@@ -73,6 +79,11 @@ public class SpatialReducer
         } else if( uri.getPath().endsWith( scheduling )){
           schedulingMap = readScheduling( hdfs, uri );
         }
+        //new
+        else if( uri.getPath().endsWith( scheduling )){
+          transitionMap = readChannelTransition( hdfs, uri );
+        }
+        //newend
         //else if( uri.getPath().endsWith( estPareto ) ) {
         //  paretoFront = readParetoFrontFromHdfs( hdfs, uri );
         //}
@@ -102,7 +113,7 @@ public class SpatialReducer
     final Integer index = (int) round( ( trips.size() - 1 ) * generator.nextDouble() );
     final ViewSequenceWritable selected = trips.get( index );
 
-    final ViewSequenceValue value = new ViewSequenceValue( selected, preferenceMap, schedulingMap );
+    final ViewSequenceValue value = new ViewSequenceValue( selected, preferenceMap, schedulingMap, transitionMap ); //added param
 
     context.write( new Text( "1" ), value );
   }

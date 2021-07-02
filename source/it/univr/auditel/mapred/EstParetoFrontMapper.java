@@ -108,7 +108,7 @@ public class EstParetoFrontMapper
 
     if( sequence.checkSequence( initialContext, maxDuration, durationOffset ) ) {
       final ViewSequenceValue view =
-        new ViewSequenceValue( sequence, preferenceMap, schedulingMap );
+        new ViewSequenceValue( sequence, preferenceMap, schedulingMap, transitionMap ); //added param
       context.write( new Text( "1" ), view );
     }
   }
