@@ -3,6 +3,7 @@ package it.univr.auditel.shadoop.core;
 import it.univr.auditel.entities.GContext;
 import it.univr.auditel.entities.Group;
 import it.univr.auditel.entities.GroupView;
+import it.univr.auditel.entities.Utils;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
 import java.io.DataInput;
@@ -11,12 +12,11 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.StringTokenizer;
+import java.util.*;
 
+import static it.univr.auditel.entities.Utils.*;
 import static java.lang.Integer.parseInt;
+import static java.lang.Math.*;
 
 /**
  * MISSING_COMMENT
@@ -89,19 +89,23 @@ public class ViewSequenceWritable implements Writable {
       dataOutput.writeInt( group.getUsers().size() );
       final Iterator<String> utk = group.getUsers().iterator();
       while( utk.hasNext() ) {
-        dataOutput.writeUTF( utk.next() );
+        final String u = utk.next();
+        dataOutput.writeUTF( u );
+        // changed for retrieving the type of each user
+        dataOutput.writeUTF( group.getTypeByUser( u ));
       }
 
-      dataOutput.writeInt( group.getTypeSet().size() );
+      // changed for retrieving the type of each user
+      /*dataOutput.writeInt( group.getTypeSet().size() );
       final Iterator<String> ttk = group.getTypeSet().iterator();
       while( ttk.hasNext() ) {
         dataOutput.writeUTF( ttk.next() );
-      }
+      }//*/
 
       dataOutput.writeUTF( group.getTimeSlot() );
 
       dataOutput.writeInt( sequence.size() );
-      final DateFormat f = new SimpleDateFormat( "yyyy-MM-dd hh:mm" );
+      final DateFormat f = new SimpleDateFormat( "yyyy-MM-dd HH:mm" );
       for( GroupView view : sequence ) {
         dataOutput.writeUTF( view.getProgramId() );
         dataOutput.writeUTF( view.getEpgChannelId() );
@@ -119,19 +123,22 @@ public class ViewSequenceWritable implements Writable {
       throw new NullPointerException();
     }
 
-    final DateFormat f = new SimpleDateFormat( "yyyy-MM-dd hh:mm" );
+    final DateFormat f = new SimpleDateFormat( "yyyy-MM-dd HH:mm" );
 
     final Group group = new Group();
     group.setGroupId( dataInput.readInt() );
     group.setFamilyId( dataInput.readUTF() );
     final int numUsers = dataInput.readInt();
     for( int i = 0; i < numUsers; i++ ) {
-      group.addUser( dataInput.readUTF() );
+      final String u = dataInput.readUTF();
+      group.addUser( u );
+      group.addType( u, dataInput.readUTF() );
     }
-    final int numTypes = dataInput.readInt();
+    // changed for retrieving the type of each user
+    /*final int numTypes = dataInput.readInt();
     for( int i = 0; i < numTypes; i++ ) {
       group.addType( dataInput.readUTF() );
-    }
+    }//*/
 
     group.setTimeSlot( dataInput.readUTF() );
 
@@ -176,6 +183,8 @@ public class ViewSequenceWritable implements Writable {
     final Group g = new Group();
     GroupView v = new GroupView();
 
+    final List<String> tmpUsers = new ArrayList<>();
+
     final StringTokenizer tk = new StringTokenizer( line, "," );
     int i = 0, j = 0;
     while( tk.hasMoreTokens() ) {
@@ -184,12 +193,14 @@ public class ViewSequenceWritable implements Writable {
       if( i == 0 ) { // list of users
         final StringTokenizer itk = new StringTokenizer( current, "-" );
         while( itk.hasMoreTokens() ) {
-          g.addUser( itk.nextToken() );
+          final String u = itk.nextToken();
+          g.addUser( u.trim() );
+          tmpUsers.add( u.trim() );
         }
         i++;
 
       } else if( i == 1 ) { // family id
-        g.setFamilyId( current );
+        g.setFamilyId( current.trim() );
         i++;
 
       } else if( i == 2 ) { // group id
@@ -203,18 +214,24 @@ public class ViewSequenceWritable implements Writable {
       } else if( i == 3 ) { // type set
         final String typeSet = current;
         final StringTokenizer itk = new StringTokenizer( typeSet, "-" );
+        int ui = 0;
         while( itk.hasMoreTokens() ) {
-          g.addType( itk.nextToken() );
+          if( ui >= tmpUsers.size() ){
+            System.out.printf( "ERRORE" );
+          }
+          g.addType( tmpUsers.get(ui), itk.nextToken() );
+          ui++;
         }
         i++;
 
       } else if( i >= 4 ) { // view sequence
+
         if( j == 0 ) { // channel id
-          v.setEpgChannelId( current );
+          v.setEpgChannelId( current.trim() );
           j++;
 
         } else if( j == 1 ) {
-          v.setProgramId( current );
+          v.setProgramId( current.trim() );
           j++;
 
         } else if( j == 2 ) {
@@ -238,7 +255,7 @@ public class ViewSequenceWritable implements Writable {
           v.setTimeSlot( timeSlot );
           v.setGroup( new Group( g ) );
           v.getGroup().setTimeSlot( timeSlot );
-          addView( v );
+          addView( new GroupView( v ) );
           // reset all
           j = 0;
           v = new GroupView();
@@ -254,7 +271,19 @@ public class ViewSequenceWritable implements Writable {
    * @return
    */
 
-  public String toString() {
+  public String toString(){
+    final DateFormat d = new SimpleDateFormat( "yyyy-MM-dd HH:mm" );
+    final StringBuilder b = new StringBuilder();
+    for (GroupView v : this.getSequence()) {
+      b.append(d.format( v.getIntervalStart()));
+      b.append(",");
+      b.append(d.format( v.getIntervalEnd()));
+      b.append("-");
+    }
+    return b.toString();
+  }
+
+  public String toString_() {
     final StringBuilder b = new StringBuilder();
 
     if( sequence != null && !sequence.isEmpty() ) {
@@ -266,26 +295,30 @@ public class ViewSequenceWritable implements Writable {
 
       final Iterator<String> utk = group.getUsers().iterator();
       while( utk.hasNext() ) {
-        b.append( utk.next() );
+        final String u = utk.next();
+        b.append( u );
+        // changed for retrieving user age
+        b.append("-");
+        b.append( group.getTypeByUser( u ) );
         if( utk.hasNext() ) {
           b.append( "," );
         }
       }
       b.append( "\t" );
 
-      final Iterator<String> ttk = group.getTypeSet().iterator();
+      /*final Iterator<String> ttk = group.getTypeSet().iterator();
       while( ttk.hasNext() ) {
         b.append( ttk.next() );
         if( ttk.hasNext() ) {
           b.append( "," );
         }
       }
-      b.append( "\t" );
+      b.append( "\t" );//*/
 
       b.append( group.getTimeSlot() );
       b.append( "\t" );
 
-      final DateFormat f = new SimpleDateFormat( "yyyy-MM-dd hh:mm" );
+      final DateFormat f = new SimpleDateFormat( "yyyy-MM-dd HH:mm" );
       final Iterator<GroupView> git = sequence.iterator();
       while( git.hasNext() ) {
         final GroupView view = git.next();
@@ -306,6 +339,20 @@ public class ViewSequenceWritable implements Writable {
     return b.toString();
   }
 
+  /**
+   * MISSING_COMMENT
+   *
+   * @return
+   */
+  public boolean checkSequence( ){
+    for( int i = 0; i < sequence.size() - 1; i++ ){
+      if( sequence.get(i).getIntervalEnd().getTime() > sequence.get(i+1).getIntervalStart().getTime()  ){
+        return false;
+      }
+    }
+    return true;
+  }
+
 
   /**
    * The method returns true if the sequence regards a group and a time slot
@@ -322,15 +369,20 @@ public class ViewSequenceWritable implements Writable {
       final GroupView start = sequence.get( 0 );
       final GroupView end = sequence.get( sequence.size() - 1 );
 
+      for( int i = 0; i < sequence.size() - 1; i++ ){
+        if( sequence.get(i).getIntervalEnd().getTime() > sequence.get(i+1).getIntervalStart().getTime()  ){
+          return false;
+        }
+      }
+
       // in minutes
-      // int duration = (int) ( ( end.getIntervalEnd().getTime() -
-      //                         start.getIntervalStart().getTime() ) / ( 1000 * 60 ) );
+      int duration = (int) ( ( end.getIntervalEnd().getTime() -
+                               start.getIntervalStart().getTime() ) / ( 1000 * 60 ) );
 
       // TODO: day of week
       if( start.getGroup().getTypeSet().equals( initialContext.getAgeClassSet() ) &&
           start.getGroup().getTimeSlot().equals( initialContext.getTimeSlot() )
-          //&&
-          //duration <= maxDuration + durationOffset
+          && duration <= maxDuration + durationOffset
         ) {
         return true;
       } else {

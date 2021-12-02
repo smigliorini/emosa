@@ -2,6 +2,7 @@ package it.univr.auditel.entities;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Set;
 
 /**
  * Viewing performed by the same group of people.
@@ -41,6 +42,34 @@ public class GroupView implements Serializable {
 
   public void setGroup( Group group ) {
     this.group = group;
+  }
+
+  public void addGroupUser( String user ){
+    if( this.group == null ){
+      this.group = new Group();
+    }
+    this.group.addUser( user );
+  }
+
+  public void addGroupUsers( Set<String> users ){
+    if( this.group == null ){
+      this.group = new Group();
+    }
+    this.group.addUsers( users );
+  }
+
+  public void setGroupFamily( String familyId ){
+    if( this.group == null ){
+      this.group = new Group();
+    }
+    this.group.setFamilyId( familyId );
+  }
+
+  public void setGroupId( Integer groupId ){
+    if( this.group == null ){
+      this.group = new Group();
+    }
+    this.group.setGroupId( groupId );
   }
 
   public String getProgramId() {

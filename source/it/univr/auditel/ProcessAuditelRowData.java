@@ -40,8 +40,8 @@ import static java.lang.String.format;
  */
 public class ProcessAuditelRowData {
 
-  public static String directory = "C:\\workspace\\projects\\auditel_dataset";
-  public static String logFile = "log2_3min_groups_clean.csv";
+  public static String directory = "C:\\workspace\\projects\\veronacard_analysis\\data\\auditel";
+  public static String logFile = "log2_3min_groups_clean_timeslot_wdwe.csv";
   public static String userFile = "user_demographic_features.csv";
   public static String seqOutFile = "sequences.csv";
   public static String evolutionFile = "group_evolution.csv";
@@ -49,6 +49,8 @@ public class ProcessAuditelRowData {
   public static String seqHistoryOutFile = "sequences_history.csv";
   public static String seqQueryOutFile = "sequences_query.csv";
   public static String commandOutFile = "auditel_commands.sh";
+
+  private static final String delimiter = ";";
 
   private static String[] header =
     {
@@ -162,7 +164,7 @@ public class ProcessAuditelRowData {
     final List<String> lines = readLines( new File( directory, userFile ), true );
     final Map<String, String> ages = new HashMap<>();
     for( String l : lines ) {
-      final StringTokenizer tk = new StringTokenizer( l, "," );
+      final StringTokenizer tk = new StringTokenizer( l, delimiter );
       final String key = tk.nextToken();
       for( int i = 1; i < 6; i++ ) {
         // "family_id",
@@ -612,7 +614,7 @@ public class ProcessAuditelRowData {
     final List<ViewRecord> result = new ArrayList<>( lines.size() );
 
     for( String l : lines ) {
-      final StringTokenizer tk = new StringTokenizer( l, "," );
+      final StringTokenizer tk = new StringTokenizer( l, delimiter );
       final ViewRecord record = new ViewRecord();
 
       // id

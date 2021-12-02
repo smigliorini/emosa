@@ -15,12 +15,14 @@ public class ProgramRecord implements Serializable {
   private String channelId;
   private Date startTime;
   private Date endTime;
+  private Long duration;
 
   public ProgramRecord() {
     programId = null;
     channelId = null;
     startTime = null;
     endTime = null;
+    duration = null;
   }
 
   public String getProgramId() {
@@ -53,5 +55,13 @@ public class ProgramRecord implements Serializable {
 
   public void setEndTime( Date endTime ) {
     this.endTime = endTime;
+  }
+
+  public Long getDuration(){
+    return duration;
+  }
+
+  public void setDuration( Long duration ){
+    this.duration = duration;
   }
 }

@@ -3,7 +3,7 @@ package it.univr.veronacard.shadoop.core;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
-import edu.umn.cs.spatialHadoop.core.SpatialSite;
+import it.univr.auditel.shadoop.core.NonHiddenFileFilter;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -128,7 +128,7 @@ public class FileReader {
     try {
       final Path path = fs.resolvePath( new Path( outPath ) );
       final FileStatus[] fileStatus =
-        fs.listStatus( path, SpatialSite.NonHiddenFileFilter );
+        fs.listStatus( path, new NonHiddenFileFilter() );
 
       for( FileStatus file : fileStatus ) {
         if( file.isDirectory() ) {
@@ -178,7 +178,7 @@ public class FileReader {
     try {
       final Path path = fs.resolvePath( new Path( outPath ) );
       final FileStatus[] fileStatus =
-        fs.listStatus( path, SpatialSite.NonHiddenFileFilter );
+        fs.listStatus( path, new NonHiddenFileFilter() );
 
       for( FileStatus file : fileStatus ) {
         if( file.isDirectory() ) {
@@ -227,7 +227,7 @@ public class FileReader {
     try {
       final Path path = fs.resolvePath( new Path( outPath ) );
       final FileStatus[] fileStatus =
-        fs.listStatus( path, SpatialSite.NonHiddenFileFilter );
+        fs.listStatus( path, new NonHiddenFileFilter() );
 
       for( FileStatus file : fileStatus ) {
         if( file.isDirectory() ) {

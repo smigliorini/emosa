@@ -2,8 +2,8 @@ package it.univr.auditel;
 
 import it.univr.auditel.mapred.EstParetoFrontMapper;
 import it.univr.auditel.mapred.EstParetoFrontReducer;
-import it.univr.auditel.mapred.SpatialMapper;
-import it.univr.auditel.mapred.SpatialReducer;
+import it.univr.auditel.mapred.MosaMapper;
+import it.univr.auditel.mapred.MosaReducer;
 import it.univr.auditel.shadoop.core.ViewSequenceValue;
 import it.univr.auditel.shadoop.core.ViewSequenceWritable;
 import it.univr.utils.LogUtils;
@@ -44,26 +44,39 @@ public class TrsaAuditel {
   public static final String durationOffsetLabel = "durationOffset";
   public static final String maxPerturbationsLabel = "maxPerturbations";
   public static final String initialTemperatureLabel = "initialTemperature";
-  //public static final String dynamicLabel = "dynamic";
-  //public static final String historicalPercentageLabel = "historicalPercentage";
-  //public static final String deltaPerVisitorLabel = "deltaPerVisitor";
 
+  // it is the main file on which the MapReduce is performed, it is contained
+  // in the "input" directory -> we do not need the direct file name, but
+  // what we need is the input directory
+  // public static final String sequenceFile = "sequences_history.csv";
+
+  // AUDITEL
+  // public static final String schedulingFile = "epg_program_scheduling.csv";
+  // public static final String preferenceFile = "univr_user_channel_timeslot_wdwe_grouptype_seconds_preference.csv";
+
+  // POI: Foursquare Gowalla
+  public static final String schedulingFile = "poi_visiting_time.csv";
+  public static final String preferenceFile = "user_poi_timeslot_grouptype_seconds_preference.csv";
+
+  // ALL
   public static final String groupTypeEvolutionFile = "group_type_evolution.csv";
-  public static final String sequenceFile = "sequences.csv";
-  public static final String preferenceFile = "user_channel_timeslot_wdwe_seconds_preference.csv";
-  public static final String schedulingFile = "epg_program_scheduling.csv";
+  public static final String genreSequenceFile = "genre_sequence_preference.csv";
 
   public static final String paretoFileSuffix = "epf";
 
   public static final String paretoFileLabel = "est_pareto_file";
-  public static final String groupTypeEvoFileLabel = "group_type_evolution";
   public static final String sequenceFileLabel = "sequence";
-  public static final String userPreferenceFileLabel = "user_preference";
   public static final String schedulingFileLabel = "scheduling";
+  public static final String groupTypeEvoFileLabel = "group_type_evolution";
+  public static final String genreSequenceFileLabel = "genre_sequence";
+  public static final String userPreferenceFileLabel = "user_preference";
 
-  // TODO: FAST FIX, assume maximum POI id = 30
-  // substitute with list of POI ids
-  // public static final int maxPoiId = 30;
+  public static final String auditelLabel = "auditel";
+  private static final String auditel = "false";
+
+  public static final String dynamicLabel = "dynamic";
+  private static final String dynamic = "true";
+
 
   /**
    * MISSING_COMMENT
@@ -90,6 +103,8 @@ public class TrsaAuditel {
 
     final Path groupTypeEvolutionCachePath = new Path
       ( format( "%s/%s", ts.mainDirectory, groupTypeEvolutionFile ) );
+    final Path genreSequenceCachePath = new Path
+      ( format( "%s/%s", ts.mainDirectory, genreSequenceFile ));
     final Path preferenceCachePath = new Path
       ( format( "%s/%s", ts.mainDirectory, preferenceFile ) );
     final Path schedulingCachePath = new Path
@@ -99,6 +114,7 @@ public class TrsaAuditel {
 
     // running the job
     logger.info( "running job...." );
+    final long start = System.currentTimeMillis();
 
     // -------------------------------------------------------------------------
     final Job job = preliminaryJob
@@ -107,12 +123,14 @@ public class TrsaAuditel {
         preferenceCachePath,
         groupTypeEvolutionCachePath,
         schedulingCachePath,
+        genreSequenceCachePath,
         ts );
     final int result = job.waitForCompletion( true ) ? 0 : 1;
     if( result != 0 ) {
       System.exit( result );
     }
-    logger.info( "EstParetoFront completed." );//*/
+    final long end = System.currentTimeMillis();
+    logger.info( format( "EstParetoFront completed in %d millis.", end - start ) );//*/
 
     // -------------------------------------------------------------------------
     final Path trsaOutPath = new Path
@@ -122,12 +140,15 @@ public class TrsaAuditel {
             ts.outputDirectory,
             timestamp ) );
 
+    final long startMain = System.currentTimeMillis();
+
     final Job mainJob = mainJob
       ( inPath,
         trsaOutPath,
         preferenceCachePath,
         groupTypeEvolutionCachePath,
         schedulingCachePath,
+        genreSequenceCachePath,
         epfOutPath,
         ts );
 
@@ -135,7 +156,10 @@ public class TrsaAuditel {
     if( mainResult != 0 ) {
       System.exit( mainResult );
     }//*/
-    logger.info( "Trsa completed." );
+
+    final long endMain = System.currentTimeMillis();
+    logger.info( format("Trsa completed in %d millis.", endMain - startMain ) );
+    logger.info( format( "Overall job completed in %d millis.", endMain - start ) );
   }
 
 
@@ -273,11 +297,15 @@ public class TrsaAuditel {
         + "[parameters]%n%n" );
     System.out.printf
       ( "<mainDir>: main directory which must contain the "
-        + "input and output directories.%n" );
+        + "input and output directories together with the configuration files:"
+        + "\"%s\", \"%s\", \"%s\", .%n",
+        groupTypeEvolutionFile, preferenceFile, genreSequenceFile
+      );
     System.out.printf
-      ( "<inputDir>: input directory which must contain the files "
-        + "\"%s\", \"%s\", \"%s\".%n",
-        groupTypeEvolutionFile, sequenceFile, preferenceFile );
+      ( "<inputDir>: input directory which must contain the sequence history files.%n"
+        // + "\"%s\", \"%s\", \"%s\", \"%s\".%n",
+        // groupTypeEvolutionFile, sequenceFile, preferenceFile, genreSequenceFile );
+      );
     System.out.printf
       ( "<outputDir>: output directory in which the output will be saved.%n" );
     System.out.printf
@@ -343,7 +371,9 @@ public class TrsaAuditel {
    * @param inPath
    * @param outPath
    * @param preferencePath
+   * @param genreSequencePath
    * @param groupTypeEvolutionPath
+   * @param schedulingCachePath
    * @param arguments
    * @return
    * @throws IOException
@@ -355,6 +385,7 @@ public class TrsaAuditel {
   ( Path inPath,
     Path outPath,
     Path preferencePath,
+    Path genreSequencePath,
     Path groupTypeEvolutionPath,
     Path schedulingCachePath,
     TrsaArguments arguments )
@@ -369,6 +400,9 @@ public class TrsaAuditel {
       throw new NullPointerException();
     }
     if( preferencePath == null ) {
+      throw new NullPointerException();
+    }
+    if( genreSequencePath == null ) {
       throw new NullPointerException();
     }
     if( groupTypeEvolutionPath == null ) {
@@ -387,13 +421,16 @@ public class TrsaAuditel {
     configuration.set( durationLabel, arguments.duration.toString() );
     configuration.set( durationOffsetLabel, arguments.durationOffset.toString() );
     configuration.set( groupTypeEvoFileLabel, groupTypeEvolutionFile );
-    configuration.set( sequenceFileLabel, sequenceFile );
+    //configuration.set( sequenceFileLabel, sequenceFile );
     configuration.set( userPreferenceFileLabel, preferenceFile );
+    configuration.set( genreSequenceFileLabel, genreSequenceFile );
     configuration.set( schedulingFileLabel, schedulingFile );
     configuration.set( maxPerturbationsLabel, arguments.maxPerturbations.toString() );
     configuration.set( initialTemperatureLabel, arguments.initialTemperature.toString() );
     configuration.set( ageClassesLabel, arguments.ageClasses );
     configuration.set( timeSlotLabel, arguments.timeSlot );
+    configuration.set( auditelLabel, auditel );
+    configuration.set( dynamicLabel, dynamic );
 
     final Job job = Job.getInstance( configuration );
     job.setJarByClass( TrsaAuditel.class );
@@ -406,6 +443,7 @@ public class TrsaAuditel {
     job.addCacheFile( cfs.resolvePath( preferencePath ).toUri() );
     job.addCacheFile( cfs.resolvePath( groupTypeEvolutionPath ).toUri() );
     job.addCacheFile( cfs.resolvePath( schedulingCachePath ).toUri() );
+    job.addCacheFile( cfs.resolvePath( genreSequencePath ).toUri() );
 
     // -------------------------------------------------------------------------
 
@@ -431,6 +469,7 @@ public class TrsaAuditel {
    * @param preferenceCachePath
    * @param groupTypeEvolutionCachePath
    * @param schedulingCachePath
+   * @param genreSequenceCachePath
    * @param epfOutPath
    * @param arguments
    * @return
@@ -443,6 +482,7 @@ public class TrsaAuditel {
     Path preferenceCachePath,
     Path groupTypeEvolutionCachePath,
     Path schedulingCachePath,
+    Path genreSequenceCachePath,
     Path epfOutPath,
     TrsaArguments arguments )
     throws IOException {
@@ -462,6 +502,9 @@ public class TrsaAuditel {
     if( schedulingCachePath == null ) {
       throw new NullPointerException();
     }
+    if( genreSequenceCachePath == null ) {
+      throw new NullPointerException();
+    }
     if( epfOutPath == null ) {
       throw new NullPointerException();
     }
@@ -479,11 +522,14 @@ public class TrsaAuditel {
     configuration.set( groupTypeEvoFileLabel, groupTypeEvolutionFile );
     configuration.set( schedulingFileLabel, schedulingFile );
     configuration.set( userPreferenceFileLabel, preferenceFile );
+    configuration.set( genreSequenceFileLabel, genreSequenceFile );
     configuration.set( paretoFileLabel, paretoFileSuffix );
     configuration.set( maxPerturbationsLabel, arguments.maxPerturbations.toString() );
     configuration.set( initialTemperatureLabel, arguments.initialTemperature.toString() );
     configuration.set( ageClassesLabel, arguments.ageClasses );
     configuration.set( timeSlotLabel, arguments.timeSlot );
+    configuration.set( auditelLabel, auditel );
+    configuration.set( dynamicLabel, dynamic );
 
     final Job job = Job.getInstance( configuration );
     job.setJarByClass( TrsaAuditel.class );
@@ -496,6 +542,7 @@ public class TrsaAuditel {
     job.addCacheFile( cfs.resolvePath( preferenceCachePath ).toUri() );
     job.addCacheFile( cfs.resolvePath( groupTypeEvolutionCachePath ).toUri() );
     job.addCacheFile( cfs.resolvePath( schedulingCachePath ).toUri() );
+    job.addCacheFile( cfs.resolvePath( genreSequenceCachePath ).toUri() );
     job.addCacheFile( cfs.resolvePath( epfOutPath ).toUri() );
 
     // -------------------------------------------------------------------------
@@ -503,40 +550,15 @@ public class TrsaAuditel {
     FileInputFormat.addInputPath( job, inPath );
     FileOutputFormat.setOutputPath( job, outPath );
 
-    job.setMapperClass( SpatialMapper.class );
-    job.setReducerClass( SpatialReducer.class );
+    job.setMapperClass( MosaMapper.class );
+    job.setReducerClass( MosaReducer.class );
 
     // output produced by the map!
     job.setOutputKeyClass( Text.class );
-    job.setOutputValueClass( ViewSequenceWritable.class );
+    //job.setOutputValueClass( ViewSequenceWritable.class );
+    job.setOutputValueClass( Text.class );
     return job;
   }
-
-  // ===========================================================================
-
-
-  /**
-   * MISSING_COMMENT
-   *
-   * @param configuration
-   */
-
-  /*public static void initializeEto( Configuration configuration ) {
-
-    if( configuration == null ) {
-      throw new NullPointerException();
-    }
-
-    for( int poi = 1; poi <= maxPoiId; poi++ ) {
-      for( int i = 1; i <= 24; i++ ) {
-        //configuration.set
-        //  ( format
-        //      ( "%s_%s", configuration.get( requiredChannelLabel ), i ),
-        //    "0" );
-        configuration.set( format( "%s_%s", poi, i ), "0" );
-      }
-    }
-  }//*/
 }
 
 

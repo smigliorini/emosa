@@ -1,10 +1,9 @@
 package it.univr.auditel.mosa;
 
-import it.univr.auditel.entities.GroupView;
-import it.univr.auditel.entities.ProgramRecord;
-import it.univr.auditel.entities.UserPreference;
+import it.univr.auditel.entities.*;
 import it.univr.auditel.shadoop.core.ViewSequenceValue;
 import it.univr.auditel.shadoop.core.ViewSequenceWritable;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -16,6 +15,7 @@ import java.util.Random;
 import java.util.Set;
 
 import static it.univr.auditel.entities.Utils.*;
+import static java.lang.Math.*;
 import static java.lang.Math.exp;
 import static java.lang.Math.min;
 import static java.util.Calendar.DATE;
@@ -37,7 +37,7 @@ public class MosaUtils {
 
   // === Methods ===============================================================
 
-  private MosaUtils() {
+  private MosaUtils(){
     // nothing here
   }
 
@@ -62,24 +62,39 @@ public class MosaUtils {
     int minDuration,
     int maxDuration,
     Map<String, List<UserPreference>> preferenceMap,
-    Map<Date, Map<String, List<ProgramRecord>>> scheduling ) {
+    Map<String, Map<String, Double>> genreSeqPreferenceMap,
+    Map<GContext, Map<GContext, Double>> groupTypeEvolutionMap,
+    Map<Long, Map<String, List<ProgramRecord>>> scheduling,
+    boolean auditel,
+    boolean dynamic ){
 
-    if( a == null ) {
+    if( a == null ){
       throw new NullPointerException();
     }
-    if( b == null ) {
+    if( b == null ){
       throw new NullPointerException();
     }
-    if( preferenceMap == null ) {
+    if( preferenceMap == null ){
       throw new NullPointerException();
     }
-    if( scheduling == null ) {
+    if( genreSeqPreferenceMap == null ){
+      throw new NullPointerException();
+    }
+    if( groupTypeEvolutionMap == null ){
       throw new NullPointerException();
     }
 
-    final ViewSequenceValue va = new ViewSequenceValue( a, preferenceMap, scheduling );
-    final ViewSequenceValue vb = new ViewSequenceValue( b, preferenceMap, scheduling );
-    return va.dominate( vb, minDuration, maxDuration );
+    if( scheduling == null ){
+      throw new NullPointerException();
+    }
+
+    final ViewSequenceValue va = new ViewSequenceValue
+      ( a, preferenceMap, genreSeqPreferenceMap,
+        groupTypeEvolutionMap, scheduling, auditel, dynamic );
+    final ViewSequenceValue vb = new ViewSequenceValue
+      ( b, preferenceMap, genreSeqPreferenceMap,
+        groupTypeEvolutionMap, scheduling, auditel, dynamic );
+    return va.dominate( vb, minDuration, maxDuration, dynamic );
   }
 
 
@@ -95,21 +110,30 @@ public class MosaUtils {
   public static Set<ViewSequenceValue> computeParetoFront
   ( Set<ViewSequenceWritable> paretoSet,
     Map<String, List<UserPreference>> preferenceMap,
-    Map<Date, Map<String, List<ProgramRecord>>> schedulingMap ) {
+    Map<String, Map<String, Double>> genreSeqPreferenceMap,
+    Map<GContext, Map<GContext, Double>> groupTypeEvolutionMap,
+    Map<Long, Map<String, List<ProgramRecord>>> schedulingMap,
+    boolean auditel,
+    boolean dynamic ){
 
-    if( paretoSet == null ) {
+    if( paretoSet == null ){
       throw new NullPointerException();
     }
-    if( preferenceMap == null ) {
+    if( preferenceMap == null ){
       throw new NullPointerException();
     }
-    if( schedulingMap == null ) {
+    if( genreSeqPreferenceMap == null ){
+      throw new NullPointerException();
+    }
+    if( schedulingMap == null ){
       throw new NullPointerException();
     }
 
     final Set<ViewSequenceValue> paretoFront = new HashSet<>( paretoSet.size() );
-    for( ViewSequenceWritable t : paretoSet ) {
-      paretoFront.add( new ViewSequenceValue( t, preferenceMap, schedulingMap ) );
+    for( ViewSequenceWritable t : paretoSet ){
+      paretoFront.add( new ViewSequenceValue
+        ( t, preferenceMap, genreSeqPreferenceMap,
+          groupTypeEvolutionMap, schedulingMap, auditel, dynamic ) );
     }
     return paretoFront;
   }
@@ -133,27 +157,40 @@ public class MosaUtils {
     int minDuration,
     int maxDuration,
     Map<String, List<UserPreference>> preferenceMap,
-    Map<Date, Map<String, List<ProgramRecord>>> schedulingMap ) {
+    Map<String, Map<String, Double>> genreSeqPreferenceMap,
+    Map<GContext, Map<GContext, Double>> groupTypeEvolutionMap,
+    Map<Long, Map<String, List<ProgramRecord>>> schedulingMap,
+    boolean auditel,
+    boolean dynamic ){
 
-    if( sequence == null ) {
+    if( sequence == null ){
       throw new NullPointerException();
     }
-    if( paretoSet == null ) {
+    if( paretoSet == null ){
       throw new NullPointerException();
     }
-    if( preferenceMap == null ) {
+    if( preferenceMap == null ){
       throw new NullPointerException();
     }
-    if( schedulingMap == null ) {
+    if( genreSeqPreferenceMap == null ){
+      throw new NullPointerException();
+    }
+    if( groupTypeEvolutionMap == null ){
+      throw new NullPointerException();
+    }
+    if( schedulingMap == null ){
       throw new NullPointerException();
     }
 
     final Set<ViewSequenceValue> paretoFront =
-      computeParetoFront( paretoSet, preferenceMap, schedulingMap );
+      computeParetoFront
+        ( paretoSet, preferenceMap, genreSeqPreferenceMap,
+          groupTypeEvolutionMap, schedulingMap, auditel, dynamic );
     return energy_
       ( sequence, paretoFront,
         minDuration, maxDuration,
-        preferenceMap, schedulingMap );
+        preferenceMap, genreSeqPreferenceMap,
+        groupTypeEvolutionMap, schedulingMap, auditel, dynamic );
   }
 
 
@@ -176,28 +213,39 @@ public class MosaUtils {
     int minDuration,
     int maxDuration,
     Map<String, List<UserPreference>> preferenceMap,
-    Map<Date, Map<String, List<ProgramRecord>>> schedulingMap ) {
+    Map<String, Map<String, Double>> genreSeqPreferenceMap,
+    Map<GContext, Map<GContext, Double>> groupTypeEvolutionMap,
+    Map<Long, Map<String, List<ProgramRecord>>> schedulingMap,
+    boolean auditel,
+    boolean dynamic ){
 
-    if( sequence == null ) {
+    if( sequence == null ){
       throw new NullPointerException();
     }
-    if( paretoFront == null ) {
+    if( paretoFront == null ){
       throw new NullPointerException();
     }
-    if( preferenceMap == null ) {
+    if( preferenceMap == null ){
       throw new NullPointerException();
     }
-    if( schedulingMap == null ) {
+    if( genreSeqPreferenceMap == null ){
+      throw new NullPointerException();
+    }
+    if( groupTypeEvolutionMap == null ){
+      throw new NullPointerException();
+    }
+    if( schedulingMap == null ){
       throw new NullPointerException();
     }
 
     final ViewSequenceValue svalue =
       new ViewSequenceValue
-        ( sequence, preferenceMap, schedulingMap );
+        ( sequence, preferenceMap, genreSeqPreferenceMap,
+          groupTypeEvolutionMap, schedulingMap, auditel, dynamic );
 
     int energy = 0;
-    for( ViewSequenceValue d : paretoFront ) {
-      if( d.dominate( svalue, minDuration, maxDuration ) ) {
+    for( ViewSequenceValue d : paretoFront ){
+      if( d.dominate( svalue, minDuration, maxDuration, dynamic ) ){
         energy++;
       }
     }
@@ -227,21 +275,31 @@ public class MosaUtils {
     int minDuration,
     int maxDuration,
     Map<String, List<UserPreference>> preferenceMap,
-    Map<Date, Map<String, List<ProgramRecord>>> schedulingMap ) {
+    Map<String, Map<String, Double>> genreSeqPreferenceMap,
+    Map<GContext, Map<GContext, Double>> groupTypeEvolutionMap,
+    Map<Long, Map<String, List<ProgramRecord>>> schedulingMap,
+    boolean auditel,
+    boolean dynamic ){
 
-    if( currentSolution == null ) {
+    if( currentSolution == null ){
       throw new NullPointerException();
     }
-    if( newSolution == null ) {
+    if( newSolution == null ){
       throw new NullPointerException();
     }
-    if( paretoSet == null ) {
+    if( paretoSet == null ){
       throw new NullPointerException();
     }
-    if( preferenceMap == null ) {
+    if( preferenceMap == null ){
       throw new NullPointerException();
     }
-    if( schedulingMap == null ) {
+    if( genreSeqPreferenceMap == null ){
+      throw new NullPointerException();
+    }
+    if( groupTypeEvolutionMap == null ){
+      throw new NullPointerException();
+    }
+    if( schedulingMap == null ){
       throw new NullPointerException();
     }
 
@@ -250,18 +308,22 @@ public class MosaUtils {
     pSet.add( currentSolution );
     pSet.add( newSolution );
     final Set<ViewSequenceValue> paretoFront =
-      computeParetoFront( pSet, preferenceMap, schedulingMap );
+      computeParetoFront
+        ( pSet, preferenceMap, genreSeqPreferenceMap,
+          groupTypeEvolutionMap, schedulingMap, auditel, dynamic );
 
     final double currEnergy = energy_
       ( currentSolution, paretoFront,
         minDuration, maxDuration,
-        preferenceMap, schedulingMap );
+        preferenceMap, genreSeqPreferenceMap,
+        groupTypeEvolutionMap, schedulingMap, auditel, dynamic );
     final double newEnergy = energy_
       ( newSolution, paretoFront,
         minDuration, maxDuration,
-        preferenceMap, schedulingMap );
+        preferenceMap, genreSeqPreferenceMap,
+        groupTypeEvolutionMap, schedulingMap, auditel, dynamic );
 
-    final double energyDiff = ( newEnergy - currEnergy ) / paretoFront.size();
+    final double energyDiff = (newEnergy - currEnergy) / paretoFront.size();
     return energyDiff;
   }
 
@@ -288,21 +350,31 @@ public class MosaUtils {
     int minDuration,
     int maxDuration,
     Map<String, List<UserPreference>> preferenceMap,
-    Map<Date, Map<String, List<ProgramRecord>>> schedulingMap ) {
+    Map<String, Map<String, Double>> genreSeqPreferenceMap,
+    Map<GContext, Map<GContext, Double>> groupTypeEvolutionMap,
+    Map<Long, Map<String, List<ProgramRecord>>> schedulingMap,
+    boolean auditel,
+    boolean dynamic ){
 
-    if( currentSolution == null ) {
+    if( currentSolution == null ){
       throw new NullPointerException();
     }
-    if( newSolution == null ) {
+    if( newSolution == null ){
       throw new NullPointerException();
     }
-    if( paretoFront == null ) {
+    if( paretoFront == null ){
       throw new NullPointerException();
     }
-    if( preferenceMap == null ) {
+    if( preferenceMap == null ){
       throw new NullPointerException();
     }
-    if( schedulingMap == null ) {
+    if( genreSeqPreferenceMap == null ){
+      throw new NullPointerException();
+    }
+    if( groupTypeEvolutionMap == null ){
+      throw new NullPointerException();
+    }
+    if( schedulingMap == null ){
       throw new NullPointerException();
     }
 
@@ -310,18 +382,23 @@ public class MosaUtils {
     final Set<ViewSequenceWritable> pSet = new HashSet<>( 2 );
     pSet.add( currentSolution );
     pSet.add( newSolution );
-    paretoFront.addAll( computeParetoFront( pSet, preferenceMap, schedulingMap ) );
+    paretoFront.addAll
+      ( computeParetoFront
+        ( pSet, preferenceMap, genreSeqPreferenceMap,
+          groupTypeEvolutionMap, schedulingMap, auditel, dynamic ) );
 
     final double currEnergy = energy_
       ( currentSolution, paretoFront,
         minDuration, maxDuration,
-        preferenceMap, schedulingMap );
+        preferenceMap, genreSeqPreferenceMap,
+        groupTypeEvolutionMap, schedulingMap, auditel, dynamic );
     final double newEnergy = energy_
       ( newSolution, paretoFront,
         minDuration, maxDuration,
-        preferenceMap, schedulingMap );
+        preferenceMap, genreSeqPreferenceMap,
+        groupTypeEvolutionMap, schedulingMap, auditel, dynamic );
 
-    final double energyDiff = ( newEnergy - currEnergy ) / paretoFront.size();
+    final double energyDiff = (newEnergy - currEnergy) / paretoFront.size();
     return energyDiff;
   }
 
@@ -350,21 +427,31 @@ public class MosaUtils {
     int minDuration,
     int maxDuration,
     Map<String, List<UserPreference>> preferenceMap,
-    Map<Date, Map<String, List<ProgramRecord>>> schedulingMap ) {
+    Map<String, Map<String, Double>> genreSeqPreferenceMap,
+    Map<GContext, Map<GContext, Double>> groupTypeEvolutionMap,
+    Map<Long, Map<String, List<ProgramRecord>>> schedulingMap,
+    boolean auditel,
+    boolean dynamic ){
 
-    if( currentSolution == null ) {
+    if( currentSolution == null ){
       throw new NullPointerException();
     }
-    if( newSolution == null ) {
+    if( newSolution == null ){
       throw new NullPointerException();
     }
-    if( paretoSet == null ) {
+    if( paretoSet == null ){
       throw new NullPointerException();
     }
-    if( preferenceMap == null ) {
+    if( preferenceMap == null ){
       throw new NullPointerException();
     }
-    if( schedulingMap == null ) {
+    if( genreSeqPreferenceMap == null ){
+      throw new NullPointerException();
+    }
+    if( groupTypeEvolutionMap == null ){
+      throw new NullPointerException();
+    }
+    if( schedulingMap == null ){
       throw new NullPointerException();
     }
 
@@ -372,7 +459,8 @@ public class MosaUtils {
       ( currentSolution, newSolution,
         paretoSet,
         minDuration, maxDuration,
-        preferenceMap, schedulingMap );
+        preferenceMap, genreSeqPreferenceMap,
+        groupTypeEvolutionMap, schedulingMap, auditel, dynamic );
     return min( 1, exp( -energyDifference / temperature ) );
   }
 
@@ -400,32 +488,42 @@ public class MosaUtils {
     int minDuration,
     int maxDuration,
     Map<String, List<UserPreference>> preferenceMap,
-    Map<Date, Map<String, List<ProgramRecord>>> schedulingMap ) {
+    Map<String, Map<String, Double>> genreSeqPreferenceMap,
+    Map<GContext, Map<GContext, Double>> groupTypeEvolutionMap,
+    Map<Long, Map<String, List<ProgramRecord>>> schedulingMap,
+    boolean auditel,
+    boolean dynamic ){
 
-    if( currentSolution == null ) {
+    if( currentSolution == null ){
       throw new NullPointerException();
     }
-    if( newSolution == null ) {
+    if( newSolution == null ){
       throw new NullPointerException();
     }
-    if( paretoFront == null ) {
+    if( paretoFront == null ){
       throw new NullPointerException();
     }
-    if( preferenceMap == null ) {
+    if( preferenceMap == null ){
       throw new NullPointerException();
     }
-    if( schedulingMap == null ) {
+    if( genreSeqPreferenceMap == null ){
+      throw new NullPointerException();
+    }
+    if( groupTypeEvolutionMap == null ){
+      throw new NullPointerException();
+    }
+    if( schedulingMap == null ){
       throw new NullPointerException();
     }
 
     // --- fix for duration ----------------------------------------------------
     if( currentSolution.getDuration() > maxDuration &&
-        newSolution.getDuration() <= maxDuration ) {
+      newSolution.getDuration() <= maxDuration ){
       return 1;
     }
 
     if( newSolution.getDuration() > maxDuration &&
-        currentSolution.getDuration() <= maxDuration ) {
+      currentSolution.getDuration() <= maxDuration ){
       return 0;
     }
 
@@ -433,7 +531,8 @@ public class MosaUtils {
 
     double energyDifference = energyDifference
       ( currentSolution, newSolution, paretoFront,
-        minDuration, maxDuration, preferenceMap, schedulingMap );
+        minDuration, maxDuration, preferenceMap, genreSeqPreferenceMap,
+        groupTypeEvolutionMap, schedulingMap, auditel, dynamic );
     return min( 1, exp( -energyDifference / temperature ) );
   }
 
@@ -458,41 +557,55 @@ public class MosaUtils {
     Integer minDuration,
     Integer maxDuration,
     Map<String, List<UserPreference>> preferenceMap,
-    Map<Date, Map<String, List<ProgramRecord>>> schedulingMap ) {
+    Map<String, Map<String, Double>> genreSeqPreferenceMap,
+    Map<GContext, Map<GContext, Double>> groupTypeEvolutionMap,
+    Map<Long, Map<String, List<ProgramRecord>>> schedulingMap,
+    boolean auditel,
+    boolean dynamic ){
 
-    if( paretoSet == null ) {
+    if( paretoSet == null ){
       throw new NullPointerException();
     }
-    if( newSol == null ) {
+    if( newSol == null ){
       throw new NullPointerException();
     }
-    if( preferenceMap == null ) {
+    if( preferenceMap == null ){
       throw new NullPointerException();
     }
-    if( schedulingMap == null ) {
+    if( genreSeqPreferenceMap == null ){
+      throw new NullPointerException();
+    }
+    if( groupTypeEvolutionMap == null ){
+      throw new NullPointerException();
+    }
+    if( schedulingMap == null ){
       throw new NullPointerException();
     }
 
     final ViewSequenceValue v =
-      new ViewSequenceValue( newSol, preferenceMap, schedulingMap );
+      new ViewSequenceValue
+        ( newSol, preferenceMap, genreSeqPreferenceMap,
+          groupTypeEvolutionMap, schedulingMap, auditel, dynamic );
     final List<ViewSequenceWritable> dominatedSet = new ArrayList<>();
     boolean isDominated = false;
 
-    for( ViewSequenceWritable t2 : paretoSet ) {
+    for( ViewSequenceWritable t2 : paretoSet ){
       final ViewSequenceValue v2 =
-        new ViewSequenceValue( t2, preferenceMap, schedulingMap );
-      if( v.dominate( v2, minDuration, maxDuration ) ) {
+        new ViewSequenceValue
+          ( t2, preferenceMap, genreSeqPreferenceMap,
+            groupTypeEvolutionMap, schedulingMap, auditel, dynamic );
+      if( v.dominate( v2, minDuration, maxDuration, dynamic ) ){
         dominatedSet.add( t2 );
       }
-      if( v2.dominate( v, minDuration, maxDuration ) ) {
+      if( v2.dominate( v, minDuration, maxDuration, dynamic ) ){
         isDominated = true;
       }
     }
 
-    if( dominatedSet.size() > 0 ) {
+    if( dominatedSet.size() > 0 ){
       paretoSet.removeAll( dominatedSet );
     }
-    if( !isDominated && !paretoSet.contains( newSol ) ) {
+    if( !isDominated && !paretoSet.contains( newSol ) ){
       paretoSet.add( newSol );
     }
   }
@@ -513,75 +626,76 @@ public class MosaUtils {
 
   public static ViewSequenceWritable perturbate
   ( ViewSequenceWritable sequence,
-    Map<Date, Map<String, List<ProgramRecord>>> scheduling,
+    Map<Long, Map<String, List<ProgramRecord>>> scheduling,
     Map<String, List<UserPreference>> preferenceMap,
     int maxDuration,
     int minDuration,
-    Random generator ) {
+    Random generator,
+    boolean auditel ){
 
-    if( sequence == null ) {
+    if( sequence == null ){
       throw new NullPointerException();
     }
-    if( scheduling == null ) {
+    if( scheduling == null ){
       throw new NullPointerException();
     }
-    if( preferenceMap == null ) {
+    if( preferenceMap == null ){
       throw new NullPointerException();
     }
-    if( generator == null ) {
+    if( generator == null ){
       throw new NullPointerException();
     }
 
-    if( sequence.size() == 1 ) {
+    if( sequence.size() == 1 ){
       // no remove or swap are possible!
       final int c = generator.nextInt( 2 );
       final ViewSequenceWritable ns;
 
-      switch( c ) {
+      switch( c ){
         case 0:
-          ns = addChannel( sequence, scheduling, generator );
-          if( ns.size() == 0 ) {
+          ns = addChannel( sequence, scheduling, generator, auditel );
+          if( ns.size() == 0 ){
             System.out.printf( "[Warn]: Empty sequence generated.%n" );
           }
           return ns;
-        case 1:
-          ns = replaceChannel( sequence, scheduling, generator );
-          if( ns.size() == 0 ) {
+        case 1://*/
+          ns = replaceChannel( sequence, scheduling, generator, auditel );
+          if( ns.size() == 0 ){
             System.out.printf( "[Warn]: Empty sequence generated.%n" );
           }
-          return ns;
+          return ns;//*/
         default:
           System.out.printf( "[Warn]: No perturbation." );
           return sequence;
-      }
-    } else if( sequence.size() > 1 ) {
+      }//*/
+    } else if( sequence.size() > 1 ){
       final int c = generator.nextInt( 3 );
       final ViewSequenceWritable ns;
 
-      switch( c ) {
+      switch( c ){
         case 0:
-          ns = addChannel( sequence, scheduling, generator );
-          if( ns.size() == 0 ) {
+          ns = addChannel( sequence, scheduling, generator, auditel );
+          if( ns.size() == 0 ){
             System.out.printf( "[Warn]: Empty sequence generated.%n" );
           }
           return ns;
         case 1:
           ns = removeChannel( sequence, scheduling, generator );
-          if( ns.size() == 0 ) {
+          if( ns.size() == 0 ){
             System.out.printf( "[Warn]: Empty sequence generated.%n" );
           }
           return ns;
-        case 2:
-          ns = replaceChannel( sequence, scheduling, generator );
-          if( ns.size() == 0 ) {
+        case 2://*/
+          ns = replaceChannel( sequence, scheduling, generator, auditel );
+          if( ns.size() == 0 ){
             System.out.printf( "[Warn]: Empty sequence generated.%n" );
           }
           return ns;
         default:
           System.out.printf( "[Warn]: No perturbation." );
           return sequence;
-      }
-    } else {
+      }//*/
+    } else{
       System.out.printf( "[Warn]: No perturbation empty sequence." );
       return sequence;
     }
@@ -597,21 +711,23 @@ public class MosaUtils {
    * @param sequence
    * @param scheduling
    * @param generator
+   * @param auditel
    * @return
    */
 
   public static ViewSequenceWritable replaceChannel
   ( ViewSequenceWritable sequence,
-    Map<Date, Map<String, List<ProgramRecord>>> scheduling,
-    Random generator ) {
+    Map<Long, Map<String, List<ProgramRecord>>> scheduling,
+    Random generator,
+    boolean auditel ){
 
-    if( sequence == null && !sequence.isEmpty() ) {
+    if( sequence == null && !sequence.isEmpty() ){
       throw new NullPointerException();
     }
-    if( scheduling == null ) {
+    if( scheduling == null ){
       throw new NullPointerException();
     }
-    if( generator == null ) {
+    if( generator == null ){
       throw new NullPointerException();
     }
 
@@ -620,21 +736,23 @@ public class MosaUtils {
 
     // --- first part of the sequence ------------------------------------------
     final ViewSequenceWritable result = new ViewSequenceWritable();
-    for( int i = 0; i < replaceIndex; i++ ) {
+    for( int i = 0; i < replaceIndex; i++ ){
       result.addView( new GroupView( sequence.getView( i ) ) );
     }
 
-    final Date keyDate, keyTimestamp;
-    if( replaceIndex == 0 ) {
+    final Long keyDate;
+    final Date keyTimestamp;
+    if( auditel ){
       keyTimestamp = sequence.getView( 0 ).getIntervalStart();
-      keyDate = truncate( keyTimestamp, DATE );
-    } else {
-      keyTimestamp = result.getView( replaceIndex - 1 ).getIntervalEnd();
-      keyDate = truncate( keyTimestamp, DATE );
+      keyDate = truncate( keyTimestamp, DATE ).getTime();
+    } else{
+      keyDate = new Long( 0 );
+      keyTimestamp = null;
     }
 
+
     final Map<String, List<ProgramRecord>> channelMap = scheduling.get( keyDate );
-    if( channelMap != null && channelMap.keySet().size() > 1 ) {
+    if( channelMap != null && channelMap.keySet().size() > 1 ){
       final List<String> channels = new ArrayList<>( channelMap.keySet() );
       // remove from the choices the current channel
       channels.remove( sequence.getView( replaceIndex ).getEpgChannelId() );
@@ -643,81 +761,163 @@ public class MosaUtils {
       final List<ProgramRecord> programs = channelMap.get( newChannel );
 
       final List<ProgramRecord> candidates = new ArrayList<>();
-      for( ProgramRecord curr : programs ) {
-        if( replaceIndex == 0 ) {
-          // check the end time
-          if( curr.getEndTime().getTime() - keyTimestamp.getTime() <= delta ) {
+      if( auditel ){
+        for( ProgramRecord curr : programs ){
+          if( abs( curr.getStartTime().getTime() - keyTimestamp.getTime() ) <= delta ){
             candidates.add( curr );
           }
-        } else {
-          // check the start time
-          if( curr.getStartTime().getTime() - keyTimestamp.getTime() >= delta ) {
-            candidates.add( curr );
-          }
+        }
+      } else{
+        for( ProgramRecord curr : programs ){
+          candidates.add( curr );
         }
       }
 
       // --- second part of the sequence ---------------------------------------
 
-      if( !candidates.isEmpty() ) {
+      if( !candidates.isEmpty() ){
         Collections.sort( candidates, new Comparator<ProgramRecord>() {
           @Override
-          public int compare( ProgramRecord o1, ProgramRecord o2 ) {
-            if( ( o1 == null && o2 == null ) ||
-                ( o1.getStartTime() == null && o2.getStartTime() == null ) ) {
+          public int compare( ProgramRecord o1, ProgramRecord o2 ){
+            if( (o1 == null && o2 == null) ||
+              (o1.getStartTime() == null && o2.getStartTime() == null) ){
               return 0;
-            } else if( ( o1 != null && o2 == null ) ||
-                       ( o1.getStartTime() != null && o2 == null ) ) {
+            } else if( (o1 != null && o2 == null) ||
+              (o1.getStartTime() != null && o2 == null) ){
               return 1;
-            } else if( ( o1 == null && o2 != null ) ||
-                       ( o1.getStartTime() == null && o2.getStartTime() != null ) ) {
+            } else if( (o1 == null && o2 != null) ||
+              (o1.getStartTime() == null && o2.getStartTime() != null) ){
               return -1;
-            } else {
+            } else{
               return o1.getStartTime().compareTo( o2.getStartTime() );
             }
           }
         } );
         final ProgramRecord r;
-        if( replaceIndex == 0 ) {
-          r = candidates.get( candidates.size() - 1 );
-        } else {
-          r = candidates.get( 0 );
-        }
+        r = candidates.get( 0 );
 
         final GroupView v = new GroupView();
         v.setGroup( oldView.getGroup() );
         v.setEpgChannelId( r.getChannelId() );
         v.setProgramId( r.getProgramId() );
-        v.setIntervalStart( new Date( r.getStartTime().getTime() ) );
-        v.setIntervalEnd( new Date( r.getEndTime().getTime() ) );
+
+        // determine the start and end time based on the other views in the sequence
+        final long start;
+
+        if( auditel ){
+          if( result.size() > 0 && replaceIndex > 0 ){
+            start = max
+              ( result.getView( replaceIndex - 1 ).getIntervalEnd().getTime(),
+                r.getStartTime().getTime() );
+          } else{
+            start = r.getStartTime().getTime();
+          }
+        } else{
+          if( result.size() > 0 && replaceIndex > 0 ){
+            if( replaceIndex > 0 ){
+              start = result.getView( replaceIndex - 1 )
+                .getIntervalEnd().getTime();
+            } else{
+              start = result.getView( replaceIndex + 1 )
+                .getIntervalStart().getTime() -
+                r.getDuration() * 60 * 1000;
+            }
+          } else{
+            start = new Date().getTime();
+          }
+        }
+
+        final long end;
+        if( auditel ){
+          if( result.size() > 0 && replaceIndex < result.size() ){
+            end = min
+              ( result.getView( result.size() - 1 ).getIntervalStart().getTime(),
+                r.getEndTime().getTime() );
+          } else{
+            end = r.getEndTime().getTime();
+          }
+        } else{
+          if( result.size() > 0 && replaceIndex < result.size() ){
+            if( replaceIndex > 0 ){
+              end = result.getView( replaceIndex - 1 )
+                .getIntervalStart().getTime() +
+                r.getDuration() * 60 * 1000;
+            } else{
+              end = result.getView( replaceIndex - 1 )
+                .getIntervalStart().getTime() - r.getDuration() * 60 * 1000;
+            }
+          } else{
+            end = new Date().getTime() + r.getDuration() * 60 * 1000;
+          }
+        }
+
+        v.setIntervalStart( new Date( start ) );
+        v.setIntervalEnd( new Date( end ) );
         determineViewTimeSlot( v );
 
         result.addView( v );
-      } else {
+      } else{
         result.addView( new GroupView( oldView ) );
       }
 
-      for( int i = replaceIndex + 1; i < sequence.size(); i++ ) {
-        final ProgramRecord r = findCandidateProgram
-          ( sequence.getView( i ).getEpgChannelId(),
-            result.getView( result.size() - 1 ).getIntervalEnd(),
-            scheduling );
-        if( r != null ) {
+      for( int i = replaceIndex + 1; i < sequence.size(); i++ ){
+        if( auditel ){
+          final ProgramRecord r = findCandidateProgram
+            ( sequence.getView( i ).getEpgChannelId(),
+              result.getView( result.size() - 1 ).getIntervalEnd(),
+              scheduling );
+          if( r != null ){
+            final GroupView v = new GroupView();
+            v.setGroup( oldView.getGroup() );
+            v.setEpgChannelId( r.getChannelId() );
+            v.setProgramId( r.getProgramId() );
+            v.setIntervalStart( new Date( r.getStartTime().getTime() ) );
+            v.setIntervalEnd( new Date( r.getEndTime().getTime() ) );
+            determineViewTimeSlot( v );
+            result.addView( v );
+          }
+        } else{
+          final GroupView prevView = sequence.getSequence().get( replaceIndex );
+
           final GroupView v = new GroupView();
           v.setGroup( oldView.getGroup() );
-          v.setEpgChannelId( r.getChannelId() );
-          v.setProgramId( r.getProgramId() );
-          v.setIntervalStart( new Date( r.getStartTime().getTime() ) );
-          v.setIntervalEnd( new Date( r.getEndTime().getTime() ) );
+          v.setEpgChannelId( oldView.getEpgChannelId() );
+          v.setProgramId( oldView.getProgramId() );
+          v.setIntervalStart( prevView.getIntervalEnd() );
+          v.setIntervalEnd( new Date( prevView.getIntervalEnd().getTime() +
+            oldView.getIntervalEnd().getTime() -
+            oldView.getIntervalStart().getTime() ) );
           determineViewTimeSlot( v );
           result.addView( v );
         }
       }
+
+      if( result.getSequence().size() == 0 ){
+        System.out.printf( "Empty sequence generated.%n" );
+      }
+      if( !checkSequence( result ) ){
+        System.out.println( "An invalid sequence has been generated.%n" );
+      }
       return result;
 
-    } else {
+    } else{
       return sequence;
     }
+  }
+
+  private static boolean checkSequence( ViewSequenceWritable sequence ){
+    if( sequence == null ){
+      throw new NullPointerException();
+    }
+
+    boolean result = true;
+    for( int i = 0; i < sequence.getSequence().size() - 1 && result; i++ ){
+      result = result &&
+        sequence.getSequence().get( i ).getIntervalEnd().getTime() <=
+          sequence.getSequence().get( i + 1 ).getIntervalStart().getTime();
+    }
+
+    return result;
   }
 
   /**
@@ -727,88 +927,110 @@ public class MosaUtils {
    * @param sequence
    * @param scheduling
    * @param generator
+   * @param auditel
    * @return
    */
 
   public static ViewSequenceWritable addChannel
   ( ViewSequenceWritable sequence,
-    Map<Date, Map<String, List<ProgramRecord>>> scheduling,
-    Random generator ) {
+    Map<Long, Map<String, List<ProgramRecord>>> scheduling,
+    Random generator,
+    boolean auditel ){
 
-    if( sequence == null && !sequence.isEmpty() ) {
+    if( sequence == null && !sequence.isEmpty() ){
       throw new NullPointerException();
     }
-    if( scheduling == null ) {
+    if( scheduling == null ){
       throw new NullPointerException();
     }
-    if( generator == null ) {
+    if( generator == null ){
       throw new NullPointerException();
     }
 
-    final int insertIndex = generator.nextInt( sequence.size() + 1 );
+    final int b = generator.nextInt( 1 );
+    final int insertIndex;
+    if( b == 0 ){
+      insertIndex = 0;
+    } else{
+      insertIndex = sequence.getSequence().size();
+    }
 
     // --- first part of the sequence ------------------------------------------
     final ViewSequenceWritable result = new ViewSequenceWritable();
-    for( int i = 0; i < insertIndex; i++ ) {
+    for( int i = 0; i < insertIndex; i++ ){
       result.addView( new GroupView( sequence.getView( i ) ) );
     }
 
-    final Date keyDate, keyTimestamp;
-    if( insertIndex == 0 ) {
-      keyTimestamp = sequence.getView( insertIndex ).getIntervalStart();
-      keyDate = truncate( keyTimestamp, DATE );
-    } else {
-      keyTimestamp = result.getView( insertIndex - 1 ).getIntervalEnd();
-      keyDate = truncate( keyTimestamp, DATE );
+    // --- central part of the sequence -----------------------------------------
+
+    final Date keyTimestamp;
+    final Long keyDate;
+    if( auditel ){
+      if( insertIndex == 0 ){
+        keyTimestamp = sequence.getView( insertIndex ).getIntervalStart();
+        keyDate = truncate( keyTimestamp, DATE ).getTime();
+      } else{
+        keyTimestamp = sequence.getView( insertIndex - 1 ).getIntervalEnd();
+        keyDate = truncate( keyTimestamp, DATE ).getTime();
+      }
+    } else{
+      keyDate = new Long( 0 );
+      keyTimestamp = null;
     }
 
+    final List<Long> l = new ArrayList<>( scheduling.keySet() );
+    Collections.sort( l );
     final Map<String, List<ProgramRecord>> channelMap = scheduling.get( keyDate );
-    if( channelMap != null && channelMap.keySet().size() > 1 ) {
+    if( channelMap != null && channelMap.keySet().size() > 1 ){
       final List<String> channels = new ArrayList<>( channelMap.keySet() );
       final String newChannel = channels.get( generator.nextInt( channels.size() ) );
 
       final List<ProgramRecord> programs = channelMap.get( newChannel );
 
       final List<ProgramRecord> candidates = new ArrayList<>();
-      for( ProgramRecord curr : programs ) {
-        if( insertIndex == 0 ) {
-          // check the end time
-          if( curr.getEndTime().getTime() - keyTimestamp.getTime() <= delta ) {
-            candidates.add( curr );
+      for( ProgramRecord curr : programs ){
+        if( auditel ){
+          if( insertIndex == 0 ){
+            // check the end time
+            if( curr.getEndTime().getTime() <= keyTimestamp.getTime()
+            ){
+              candidates.add( curr );
+            }
+          } else{
+            // check the start time
+            if( curr.getStartTime().getTime() >= keyTimestamp.getTime()
+            ){
+              candidates.add( curr );
+            }
           }
         } else {
-          // check the start time
-          if( curr.getStartTime().getTime() - keyTimestamp.getTime() >= delta ) {
-            candidates.add( curr );
-          }
+          candidates.add( curr );
         }
       }
 
-      // --- second part of the sequence ---------------------------------------
-
-      if( !candidates.isEmpty() ) {
+      if( !candidates.isEmpty() ){
         Collections.sort( candidates, new Comparator<ProgramRecord>() {
           @Override
-          public int compare( ProgramRecord o1, ProgramRecord o2 ) {
-            if( ( o1 == null && o2 == null ) ||
-                ( o1.getStartTime() == null && o2.getStartTime() == null ) ) {
+          public int compare( ProgramRecord o1, ProgramRecord o2 ){
+            if( (o1 == null && o2 == null) ||
+              (o1.getStartTime() == null && o2.getStartTime() == null) ){
               return 0;
-            } else if( ( o1 != null && o2 == null ) ||
-                       ( o1.getStartTime() != null && o2 == null ) ) {
+            } else if( (o1 != null && o2 == null) ||
+              (o1.getStartTime() != null && o2 == null) ){
               return 1;
-            } else if( ( o1 == null && o2 != null ) ||
-                       ( o1.getStartTime() == null && o2.getStartTime() != null ) ) {
+            } else if( (o1 == null && o2 != null) ||
+              (o1.getStartTime() == null && o2.getStartTime() != null) ){
               return -1;
-            } else {
+            } else{
               return o1.getStartTime().compareTo( o2.getStartTime() );
             }
           }
         } );
 
         final ProgramRecord r;
-        if( insertIndex == 0 ) {
+        if( insertIndex == 0 ){
           r = candidates.get( candidates.size() - 1 );
-        } else {
+        } else{
           r = candidates.get( 0 );
         }
 
@@ -816,39 +1038,80 @@ public class MosaUtils {
         v.setGroup( sequence.getView( 0 ).getGroup() );
         v.setEpgChannelId( r.getChannelId() );
         v.setProgramId( r.getProgramId() );
-        v.setIntervalStart( new Date( r.getStartTime().getTime() ) );
-        v.setIntervalEnd( new Date( r.getEndTime().getTime() ) );
+
+        // determine the start and end time based on the other views in the sequence
+        final long start;
+        if( auditel ){
+          if( result.size() > 0 && insertIndex > 0 ){
+            start = max
+              ( result.getView( insertIndex - 1 ).getIntervalEnd().getTime(),
+                r.getStartTime().getTime() );
+          } else{
+            start = r.getStartTime().getTime();
+          }
+        } else{
+          if( result.size() > 0 && insertIndex > 0 ){
+            if( insertIndex > 0 ){
+              start = result.getView( insertIndex - 1 )
+                .getIntervalEnd().getTime();
+            } else{
+              start = result.getView( insertIndex + 1 )
+                .getIntervalStart().getTime() -
+                r.getDuration() * 60 * 1000;
+            }
+          } else{
+            start = new Date().getTime();
+          }
+        }
+
+
+        final long end;
+        if( auditel ){
+          if( result.size() > 0 && insertIndex < result.size() ){
+            end = min
+              ( result.getView( result.size() - 1 ).getIntervalStart().getTime(),
+                r.getEndTime().getTime() );
+          } else{
+            end = r.getEndTime().getTime();
+          }
+        }  else{
+          if( result.size() > 0 && insertIndex < result.size() ){
+            if( insertIndex > 0 ){
+              end = result.getView( insertIndex - 1 )
+                .getIntervalStart().getTime() +
+                r.getDuration() * 60 * 1000;
+            } else{
+              end = result.getView( insertIndex - 1 )
+                .getIntervalStart().getTime() - r.getDuration() * 60 * 1000;
+            }
+          } else{
+            end = new Date().getTime() + r.getDuration() * 60 * 1000;
+          }
+        }
+
+        v.setIntervalStart( new Date( start ) );
+        v.setIntervalEnd( new Date( end ) );
         determineViewTimeSlot( v );
 
         result.addView( v );
       }
 
-      for( int i = insertIndex; i < sequence.size(); i++ ) {
-        final Date time;
-        if( result.size() > 0 ) {
-          time = result.getView( result.size() - 1 ).getIntervalEnd();
-        } else {
-          time = sequence.getView( insertIndex ).getIntervalStart();
-        }
+      // --- second part of the sequence ---------------------------------------
 
-        final ProgramRecord r = findCandidateProgram
-          ( sequence.getView( i ).getEpgChannelId(),
-            time,
-            scheduling );
-        if( r != null ) {
-          final GroupView v = new GroupView();
-          v.setGroup( sequence.getView( i ).getGroup() );
-          v.setEpgChannelId( r.getChannelId() );
-          v.setProgramId( r.getProgramId() );
-          v.setIntervalStart( new Date( r.getStartTime().getTime() ) );
-          v.setIntervalEnd( new Date( r.getEndTime().getTime() ) );
-          determineViewTimeSlot( v );
-          result.addView( v );
-        }
+
+      for( int i = insertIndex; i < sequence.size(); i++ ){
+        result.addView( new GroupView( sequence.getView( i ) ) );
+      }
+      if( result.getSequence().size() == 0 ){
+        System.out.printf( "Empty sequence generated.%n" );
+      }
+
+      if( !checkSequence( result ) ){
+        System.out.println( "An invalid sequence has been generated.%n" );
       }
       return result;
 
-    } else {
+    } else{
       return sequence;
     }
   }
@@ -865,59 +1128,48 @@ public class MosaUtils {
 
   public static ViewSequenceWritable removeChannel
   ( ViewSequenceWritable sequence,
-    Map<Date, Map<String, List<ProgramRecord>>> schedulingMap,
-    Random generator ) {
+    Map<Long, Map<String, List<ProgramRecord>>> schedulingMap,
+    Random generator ){
 
-    if( sequence == null && !sequence.isEmpty() ) {
+    if( sequence == null && !sequence.isEmpty() ){
       throw new NullPointerException();
     }
-    if( schedulingMap == null ) {
+    if( schedulingMap == null ){
       throw new NullPointerException();
     }
-    if( generator == null ) {
+    if( generator == null ){
       throw new NullPointerException();
     }
 
-    if( sequence.size() == 1 ) {
+    if( sequence.size() == 1 ){
       return sequence;
 
-    } else {
+    } else{
       final int removeIndex = generator.nextInt( sequence.size() );
 
       // --- first part of the sequence ------------------------------------------
       final ViewSequenceWritable result = new ViewSequenceWritable();
 
-      for( int i = 0; i < removeIndex; i++ ) {
+      for( int i = 0; i < removeIndex; i++ ){
+        //for (int i = 0; i < removeIndex - 1; i++) {
         result.addView( new GroupView( sequence.getView( i ) ) );
       }
 
       // --- second part of the sequence ---------------------------------------
 
-      for( int i = removeIndex + 1; i < sequence.size(); i++ ) {
-        final Date time;
-        if( result.size() > 0 ) {
-          time = result.getView( result.size() - 1 ).getIntervalEnd();
-        } else {
-          time = sequence.getView( removeIndex ).getIntervalStart();
-        }
+      // the other views remain unchanged
+      for( int i = removeIndex + 1; i < sequence.size(); i++ ){
+        //for (int i = removeIndex + 2; i < sequence.size(); i++) {
+        result.addView( new GroupView( sequence.getView( i ) ) );
+      }
 
-        final ProgramRecord r = findCandidateProgram
-          ( sequence.getView( i ).getEpgChannelId(),
-            time,
-            schedulingMap );
-        if( r != null ) {
-          final GroupView v = new GroupView();
-          v.setGroup( sequence.getView( i ).getGroup() );
-          v.setEpgChannelId( r.getChannelId() );
-          v.setProgramId( r.getProgramId() );
-          v.setIntervalStart( new Date( r.getStartTime().getTime() ) );
-          v.setIntervalEnd( new Date( r.getEndTime().getTime() ) );
-          determineViewTimeSlot( v );
-          result.addView( v );
-        }
+
+      if( !checkSequence( result ) ){
+        System.out.println( "An invalid sequence has been generated.%n" );
       }
       return result;
     }
+
   }
 
 
@@ -943,8 +1195,10 @@ public class MosaUtils {
 
   public static Set<ViewSequenceWritable> performSa
   ( ViewSequenceWritable currentSol,
-    Map<Date, Map<String, List<ProgramRecord>>> schedulingMap,
+    Map<Long, Map<String, List<ProgramRecord>>> schedulingMap,
     Map<String, List<UserPreference>> preferenceMap,
+    Map<String, Map<String, Double>> genreSeqPreferenceMap,
+    Map<GContext, Map<GContext, Double>> groupTypeEvolutionMap,
     Integer minDuration,
     Integer maxDuration,
     Set<ViewSequenceWritable> paretoSet,
@@ -953,53 +1207,76 @@ public class MosaUtils {
     double initialTemperature,
     double finalTemperature,
     double alpha,
-    long maxPerturbations ) {
+    long maxPerturbations,
+    boolean auditel,
+    boolean dynamic ){
 
-    if( currentSol == null ) {
+    if( currentSol == null ){
       throw new NullPointerException();
     }
-    if( schedulingMap == null ) {
+    if( schedulingMap == null ){
       throw new NullPointerException();
     }
-    if( paretoSet == null ) {
+    if( preferenceMap == null ){
       throw new NullPointerException();
     }
-    if( paretoFront == null ) {
+    if( genreSeqPreferenceMap == null ){
       throw new NullPointerException();
     }
-    if( generator == null ) {
+    if( paretoSet == null ){
       throw new NullPointerException();
     }
-    //if( minDuration == null ) {
-    //  throw new NullPointerException();
-    //}
-    //if( maxDuration == null ) {
-    //  throw new NullPointerException();
-    //}
+    if( paretoFront == null ){
+      throw new NullPointerException();
+    }
+    if( generator == null ){
+      throw new NullPointerException();
+    }
 
     double temperature = initialTemperature;
     int c = 0;
-    while( temperature > finalTemperature ) {
-      for( long j = 0; j < maxPerturbations; j++ ) {
+    while( temperature > finalTemperature ){
+      for( long j = 0; j < maxPerturbations; j++ ){
+        if( !checkSequence( currentSol ) ){
+          System.out.printf( "Negative duration.%n" );
+        }
+
         final ViewSequenceWritable perturbSol =
           perturbate( currentSol,
-                      schedulingMap,
-                      preferenceMap,
-                      maxDuration,
-                      minDuration,
-                      generator );
-        //perturbSol.buildStepsFromCompleteMap( possibleSteps );
-        //perturbSol.computeVisitingTime
-        //  ( numVisits,
-        //    stayTimes,
-        //    eto,
-        //    historicalPercentage,
-        //    deltaPerVisitor );
+            schedulingMap,
+            preferenceMap,
+            maxDuration,
+            minDuration,
+            generator,
+            auditel );
 
-        if( perturbSol.equals( currentSol ) ) {
+        if( perturbSol.equals( currentSol ) ){
           continue;
         }
 
+        if( perturbSol.getDuration() < 0 ){
+          System.out.printf( "Negative duration!%n" );
+        }
+
+        if( perturbSol.getSequence().size() > 1 ){
+          Long minOffset = Long.MAX_VALUE;
+          Long maxOffset = Long.MIN_VALUE;
+
+          for( int k = 0; k < perturbSol.getSequence().size() - 1; k++ ){
+            final Long offset = perturbSol.getSequence().get( k + 1 ).getIntervalStart().getTime() -
+              perturbSol.getSequence().get( k ).getIntervalEnd().getTime();
+            minOffset = Math.min( minOffset, offset );
+            maxOffset = Math.max( maxOffset, offset );
+          }
+          if( minOffset < 0 || maxOffset < 0 ){
+            System.out.printf( "[LOG] Min offset in sequence: %s min. Max offset in sequence: %s min.%n",
+              minOffset / 60 / 1000,
+              maxOffset / 60 / 10000 );
+          }
+          if( minOffset < 0 ){
+            System.out.printf( "[LOG] %s.%n", perturbSol.toString() );
+          }
+        }
 
         final double p = acceptanceProbability
           ( currentSol,
@@ -1009,15 +1286,23 @@ public class MosaUtils {
             minDuration,
             maxDuration,
             preferenceMap,
-            schedulingMap );
+            genreSeqPreferenceMap,
+            groupTypeEvolutionMap,
+            schedulingMap,
+            auditel,
+            dynamic );
 
         final double u = generator.nextDouble();
-        if( u < p ) {
+        if( u < p ){
           // update the Pareto-set
           updateParetoSet
             ( paretoSet, perturbSol,
               minDuration, maxDuration,
-              preferenceMap, schedulingMap );
+              preferenceMap, genreSeqPreferenceMap,
+              groupTypeEvolutionMap,
+              schedulingMap,
+              auditel,
+              dynamic );
 
           // accept perturbSol in place of currentSol
           currentSol = perturbSol;

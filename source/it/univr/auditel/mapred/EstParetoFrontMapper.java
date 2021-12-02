@@ -10,6 +10,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
+
 import java.io.IOException;
 import java.net.URI;
 import java.util.Date;
@@ -35,39 +36,52 @@ public class EstParetoFrontMapper
 
   private Map<GContext, Map<GContext, Double>> groupTypeEvolutionMap;
   private Map<String, List<UserPreference>> preferenceMap;
-  private Map<Date, Map<String, List<ProgramRecord>>> schedulingMap;
+  private Map<Long, Map<String, List<ProgramRecord>>> schedulingMap;
+  private Map<String, Map<String, Double>> genreSequenceMap;
   private GContext initialContext;
   private Integer maxDuration;
   private FileSystem hdfs;
 
-
   private Integer durationOffset;
+
+  private boolean auditel;
+  private boolean dynamic;
 
   // ===========================================================================
 
   @Override
   protected void setup( Context context )
-    throws IOException, InterruptedException {
+    throws IOException, InterruptedException{
 
     final Configuration configuration = context.getConfiguration();
     durationOffset = parseInt( configuration.get( durationOffsetLabel ) );
 
+    auditel = Boolean.parseBoolean( configuration.get( auditelLabel ) );
+    dynamic = Boolean.parseBoolean( configuration.get( dynamicLabel ) );
+
     hdfs = FileSystem.get( configuration );
     final URI[] cachedFiles = context.getCacheFiles();
 
-    if( cachedFiles != null && cachedFiles.length == 3 ) {
+    if( cachedFiles != null && cachedFiles.length == 4 ){
       final String groupTypeEvo = configuration.get( groupTypeEvoFileLabel );
       final String preference = configuration.get( userPreferenceFileLabel );
       final String scheduling = configuration.get( schedulingFileLabel );
+      final String genreSequence = configuration.get( genreSequenceFileLabel );
 
-      for( int i = 0; i < cachedFiles.length; i++ ) {
-        final URI uri = cachedFiles[i];
-        if( uri.getPath().endsWith( groupTypeEvo ) ) {
+      for( int i = 0; i < cachedFiles.length; i++ ){
+        final URI uri = cachedFiles[ i ];
+        if( uri.getPath().endsWith( groupTypeEvo ) ){
           groupTypeEvolutionMap = readGroupTypeEvolution( hdfs, uri );
-        } else if( uri.getPath().endsWith( preference ) ) {
+        } else if( uri.getPath().endsWith( preference ) ){
           preferenceMap = readUserPreferences( hdfs, uri );
-        } else if( uri.getPath().endsWith( scheduling ) ) {
-          schedulingMap = readScheduling( hdfs, uri );
+        } else if( uri.getPath().endsWith( scheduling ) ){
+          if( scheduling.startsWith( "poi_" ) ){
+            schedulingMap = readVisitingTime( hdfs, uri );
+          } else if( scheduling.startsWith( "epg_" ) ){
+            schedulingMap = readScheduling( hdfs, uri );
+          }
+        } else if( uri.getPath().endsWith( genreSequence ) ){
+          genreSequenceMap = readGenreSequencePreferences( hdfs, uri );
         }
       }//*/
     }
@@ -75,7 +89,7 @@ public class EstParetoFrontMapper
     initialContext = new GContext();
     final String a = configuration.get( ageClassesLabel );
     final StringTokenizer tk = new StringTokenizer( a, "," );
-    while( tk.hasMoreTokens() ) {
+    while( tk.hasMoreTokens() ){
       initialContext.addAgeClass( tk.nextToken() );
     }
     initialContext.setTimeSlot( configuration.get( timeSlotLabel ) );
@@ -86,14 +100,16 @@ public class EstParetoFrontMapper
 
   @Override
   protected void map( LongWritable key, Text value, Context context )
-    throws IOException, InterruptedException {
+    throws IOException, InterruptedException{
 
     final ViewSequenceWritable sequence = new ViewSequenceWritable();
     sequence.fromText( value );
 
-    if( sequence.checkSequence( initialContext, maxDuration, durationOffset ) ) {
+    if( sequence.checkSequence( initialContext, maxDuration, durationOffset ) ){
       final ViewSequenceValue view =
-        new ViewSequenceValue( sequence, preferenceMap, schedulingMap );
+        new ViewSequenceValue
+          ( sequence, preferenceMap, genreSequenceMap,
+            groupTypeEvolutionMap, schedulingMap, auditel, dynamic );
       context.write( new Text( "1" ), view );
     }
   }

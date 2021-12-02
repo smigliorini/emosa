@@ -30,7 +30,7 @@ import static java.lang.String.format;
 public class ProcessAuditelResults {
 
   private static final String mainDirPath =
-    "C:\\workspace\\projects\\veronacard_analysis\\test_auditel\\output";
+    "C:\\workspace\\projects\\veronacard_analysis\\test_auditel_journal\\trsa_auditel\\output_dynamic_new";
 
   private static final String outFile = "results.csv";
 
@@ -83,7 +83,18 @@ public class ProcessAuditelResults {
 
     final File mainDir = new File( mainDirPath );
     if( mainDir.isDirectory() ) {
-      final File[] outDirs = mainDir.listFiles();
+      final File[] outDirs = mainDir.listFiles(new FilenameFilter() {
+        @Override
+        public boolean accept( File dir, String name ) {
+          if( name.endsWith( "_trsa" ) ) {
+            return true;
+          } else {
+            return false;
+          }
+        }
+      } );
+
+      /*final File[] outDirs = mainDir.listFiles();
       for( File od : outDirs ) {
         final String index = od.getName();
         if( od.isDirectory() ) {
@@ -96,9 +107,13 @@ public class ProcessAuditelResults {
                 return false;
               }
             }
-          } );
+          } );//*/
 
-          for( File sod : singleOutDirs ) {
+          //for( File sod : singleOutDirs ) {
+      for( File sod : outDirs ) {
+
+        final String index = sod.getName();
+
             final File[] out = sod.listFiles( new FilenameFilter() {
               @Override
               public boolean accept( File dir, String name ) {
@@ -127,20 +142,22 @@ public class ProcessAuditelResults {
                     .processViewSequenceValue( l );
 
                 b.append( index );
+                // Fd
                 b.append( "," );
                 b.append( v.getDuration() );
                 b.append( "," );
                 b.append( v.getChannelSequence().size() );
                 b.append( "," );
 
-                b.append( 0 ); // history!
-                b.append( "," );
+                // Fh: history!
+                //b.append( 0 );
+                //b.append( "," );
 
-                int m = 0;
+                /*int m = 0;
                 final Collection<Double> tmp = new ArrayList<>( v.getMissedProgramSeconds().size() );
                 for( Map.Entry<String, Integer> e : v.getMissedProgramSeconds().entrySet() ) {
-                  m += e.getValue();
-                  tmp.add( Double.parseDouble( e.getValue().toString() ) );
+                  m += e.getValue() >= 0 ? e.getValue() : 0;
+                  tmp.add( e.getValue() >= 0.0 ? new Double( e.getValue() ) : 0.0 );
                 }
                 double mavg = v.getMissedProgramSeconds().size() == 0 ? 0 : average( tmp );
                 double mstd = v.getMissedProgramSeconds().size() == 0 ? 0: standardDeviation( tmp );
@@ -158,13 +175,13 @@ public class ProcessAuditelResults {
                 b.append( tp );
                 b.append( "," );
                 b.append( (tsdt != 0 && tavg != 0 ) ? tsdt / tavg : 0 );
-                b.append( format( "%n" ) );
+                b.append( format( "%n" ) );//*/
               }
             }
           }
         }
-      }
-    }
+      //}
+    //}
     writeFile( mainDirPath, outFile, b.toString() );
   }
 

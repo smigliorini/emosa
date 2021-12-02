@@ -4,7 +4,10 @@ import it.univr.auditel.shadoop.core.ViewSequenceValue;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * MISSING_COMMENT
@@ -23,19 +26,22 @@ public class EstParetoFrontReducer
       Context context )
     throws IOException, InterruptedException {
 
-    final HashSet<ViewSequenceValue> result = new HashSet<>();
+    final List<ViewSequenceValue> result = new ArrayList<>();
 
-    int i = 0;
-    for( ViewSequenceValue vv : values ) {
-      result.add( vv );
-      i++;
+
+    final Iterator<ViewSequenceValue> it = values.iterator();
+    while( it.hasNext() ){
+      final ViewSequenceValue v = new ViewSequenceValue( it.next() );
+      if( ! result.contains( v ) ){
+        result.add( v );
+      }
     }
-    System.out.println
-      ( String.format
-        ( "Number of processed lines: %d, Pareto-front size: %d ",
-          i, result.size() ) );
+
 
     for( ViewSequenceValue vv : result ) {
+      /*if( vv.getDuration() < 0 ){
+        System.out.printf( "Negative duration. %n");
+      }//*/
       context.write( key, vv );
     }
   }
