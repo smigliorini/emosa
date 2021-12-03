@@ -72,7 +72,7 @@ public class TrsaAuditel {
   public static final String userPreferenceFileLabel = "user_preference";
 
   public static final String auditelLabel = "auditel";
-  private static final String auditel = "false";
+  private static final String auditel = "true";
 
   public static final String dynamicLabel = "dynamic";
   private static final String dynamic = "true";
